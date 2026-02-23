@@ -1,6 +1,7 @@
 // Minimal version for testing - use this if main App.tsx has errors
 import React from 'react';
 
+
 export default function App() {
   return (
     <div style={{
