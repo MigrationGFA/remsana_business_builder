@@ -4,6 +4,7 @@ import { User, Mail, Phone, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react
 import { Button, Input, Checkbox, Alert } from '../components/remsana';
 import { LegalModals } from '../components/remsana/LegalModals';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { register, canUseRegistrationApi } from '../api/authApi';
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -46,40 +47,46 @@ export default function SignUpPage() {
     validatePassword(value);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-
-    // Validation
-    if (formData.fullName.length < 3) {
-      newErrors.fullName = 'Enter a valid name (3-50 characters)';
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-    if (!/^[0-9]{10}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Enter a valid Nigerian phone number';
-    }
-    if (!validatePassword(formData.password)) {
-      newErrors.password = "Password doesn't meet requirements";
-    }
-    if (!formData.termsAccepted) {
-      newErrors.terms = 'You must agree to the terms';
-    }
-
+    if (formData.fullName.length < 3) newErrors.fullName = 'Enter a valid name (3-50 characters)';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
+    if (!/^[0-9]{10}$/.test(formData.phone.replace(/\s/g, ''))) newErrors.phone = 'Enter a valid Nigerian phone number';
+    if (!validatePassword(formData.password)) newErrors.password = "Password doesn't meet requirements";
+    if (!formData.termsAccepted) newErrors.terms = 'You must agree to the terms';
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
-      // Simulate API call
+      setErrors((prev) => ({ ...prev, submit: '' }));
+      if (canUseRegistrationApi()) {
+        try {
+          const data = await register({
+            email: formData.email,
+            password: formData.password,
+            full_name: formData.fullName,
+            phone_number: formData.phoneCountry + formData.phone.replace(/\s/g, ''),
+          });
+          localStorage.setItem('remsana_auth_token', data.access_token);
+          localStorage.setItem('remsana_refresh_token', data.refresh_token || '');
+          localStorage.setItem('remsana_user', JSON.stringify({
+            email: data.user.email,
+            name: data.user.full_name || formData.fullName,
+            phone: formData.phoneCountry + formData.phone,
+          }));
+          setIsLoading(false);
+          navigate('/onboarding');
+          return;
+        } catch (err: any) {
+          setErrors((prev) => ({ ...prev, submit: err?.response?.data?.message || err?.message || 'Registration failed. Please try again.' }));
+          setIsLoading(false);
+          return;
+        }
+      }
       setTimeout(() => {
         setIsLoading(false);
-        // Store user info for testing
-        localStorage.setItem('remsana_user', JSON.stringify({
-          email: formData.email,
-          name: formData.fullName,
-          phone: formData.phone,
-        }));
+        localStorage.setItem('remsana_user', JSON.stringify({ email: formData.email, name: formData.fullName, phone: formData.phone }));
         localStorage.setItem('remsana_auth_token', 'test_token_' + Date.now());
         navigate('/onboarding');
       }, 1500);
@@ -249,32 +256,31 @@ export default function SignUpPage() {
                 <Checkbox
                   checked={formData.termsAccepted}
                   onChange={(checked) => setFormData((prev) => ({ ...prev, termsAccepted: checked }))}
-                  label={
-                    <span className="text-[14px]">
-                      I agree to the{' '}
-                      <button
-                        type="button"
-                        onClick={() => setShowTermsModal(true)}
-                        className="text-[#1C1C8B] hover:underline"
-                      >
-                        Terms of Service
-                      </button>
-                      {' '}and{' '}
-                      <button
-                        type="button"
-                        onClick={() => setShowPrivacyModal(true)}
-                        className="text-[#1C1C8B] hover:underline"
-                      >
-                        Privacy Policy
-                      </button>
-                    </span>
-                  }
-                />
+                >
+                  <span className="text-[14px]">
+                    I agree to the{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
+                      className="text-[#1C1C8B] hover:underline"
+                    >
+                      Terms of Service
+                    </button>
+                    {' '}and{' '}
+                    <button
+                      type="button"
+                      onClick={() => setShowPrivacyModal(true)}
+                      className="text-[#1C1C8B] hover:underline"
+                    >
+                      Privacy Policy
+                    </button>
+                  </span>
+                </Checkbox>
                 {errors.terms && (
                   <p className="text-[12px] text-[#C01F2F] mt-1">{errors.terms}</p>
                 )}
               </div>
-
+              {errors.submit && <Alert variant="error" message={errors.submit} className="mb-4" />}
               {/* Create Account Button */}
               <Button
                 type="submit"

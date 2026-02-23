@@ -7,7 +7,7 @@ import type {
   AuditLogRow,
   AnalystKpis,
 } from './insider/types';
-
+ 
 /**
  * Admin API functions
  */

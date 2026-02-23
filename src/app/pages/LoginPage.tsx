@@ -1,4 +1,15 @@
 import React, { useState } from 'react';
+
+// Type for test credentials
+type TestCredential = { email: string; password: string };
+
+// Extend import.meta.env type for VITE_TEST_CREDENTIALS
+interface ImportMetaEnv {
+  readonly VITE_TEST_CREDENTIALS?: string;
+}
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Checkbox, Alert } from '../components/remsana';
@@ -67,7 +78,7 @@ export default function LoginPage() {
     // Fallback: local test credentials for development (no backend)
     // Test credentials from environment (for development only)
     const testCredentialsEnv = import.meta.env.VITE_TEST_CREDENTIALS;
-    const testCredentials = testCredentialsEnv
+    const testCredentials: TestCredential[] = testCredentialsEnv
       ? JSON.parse(testCredentialsEnv)
       : [
           // Default fallback (should be removed in production)

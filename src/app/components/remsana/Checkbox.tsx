@@ -1,12 +1,14 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 
+
 interface CheckboxProps {
   label?: string;
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   disabled?: boolean;
   id?: string;
+  children?: React.ReactNode;
 }
 
 export function Checkbox({
@@ -15,6 +17,7 @@ export function Checkbox({
   onChange,
   disabled = false,
   id,
+  children,
 }: CheckboxProps) {
   const handleChange = () => {
     if (!disabled && onChange) {
@@ -43,7 +46,11 @@ export function Checkbox({
       >
         {checked && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
       </div>
-      {label && (
+      {children ? (
+        <span onClick={handleChange} className={`text-[14px] text-[#1F2121] ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>
+          {children}
+        </span>
+      ) : label ? (
         <label
           htmlFor={id}
           className={`text-[14px] text-[#1F2121] ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
@@ -51,7 +58,7 @@ export function Checkbox({
         >
           {label}
         </label>
-      )}
+      ) : null}
     </div>
   );
 }
