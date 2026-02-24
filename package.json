@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "npm run build",
+    "build": "npx run build",
     "dev": "vite"
   },
   "dependencies": {
