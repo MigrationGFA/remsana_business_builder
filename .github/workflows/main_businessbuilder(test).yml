@@ -22,6 +22,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
+  
+      - name: Install dependencies (CI)
+        run: npm ci
+    
+      - name: Fix vite permissions
+        run: chmod +x node_modules/.bin/vite
 
       - name: npm install, build, and test
         run: |
@@ -52,4 +58,5 @@ jobs:
           app-name: 'businessbuilder'
           slot-name: 'test'
           package: .
+
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_3D0971375F304B6EAFAE21CBF45FC3FE }}
