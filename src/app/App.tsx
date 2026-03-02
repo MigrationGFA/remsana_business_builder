@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import SplashScreen from './pages/SplashScreen';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
@@ -26,50 +27,60 @@ import {
 } from './pages/insider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
+/**
+ * Main App Component
+ * 
+ * Wrapped with:
+ * - ErrorBoundary: Catches and displays React errors gracefully
+ * - AuthProvider: Provides global authentication state to all routes
+ * - Router: Handles client-side routing
+ */
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <Routes>
-          <Route path="/" element={<SplashScreen />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          <Route path="/onboarding" element={<OnboardingPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/learning" element={<LearningCentrePage />} />
-          <Route path="/lesson/:lessonId" element={<LessonPlayerPage />} />
-          <Route path="/quiz/:lessonId" element={<QuizPage />} />
-          <Route path="/quiz-results/:lessonId" element={<QuizResultsPage />} />
-          <Route path="/business-registration" element={<BusinessRegistrationPage />} />
-          <Route path="/loan/eligibility" element={<LoanEligibilityPage />} />
-          <Route path="/loan/offers" element={<LoanOffersPage />} />
-          <Route path="/loan/agreement" element={<LoanAgreementPage />} />
-          <Route path="/loan/debit-setup" element={<LoanDebitSetupPage />} />
-          <Route path="/loan/status" element={<LoanStatusPage />} />
-          <Route path="/loan/repayment-schedule" element={<LoanRepaymentSchedulePage />} />
-          {/* /insider admin portal */}
-          <Route path="/insider" element={<InsiderPortalPage />} />
-          <Route path="/insider/login" element={<InsiderLoginPage />} />
-          <Route path="/insider/mfa" element={<InsiderMfaPage />} />
-          <Route
-            path="/insider/admin"
-            element={
-              <ProtectedInsiderRoute allowedRoles={['ADMIN']}>
-                <AdminDashboardPage />
-              </ProtectedInsiderRoute>
-            }
-          />
-          <Route
-            path="/insider/analyst"
-            element={
-              <ProtectedInsiderRoute allowedRoles={['ANALYST']}>
-                <AnalystDashboardPage />
-              </ProtectedInsiderRoute>
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<SplashScreen />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/learning" element={<LearningCentrePage />} />
+            <Route path="/lesson/:lessonId" element={<LessonPlayerPage />} />
+            <Route path="/quiz/:lessonId" element={<QuizPage />} />
+            <Route path="/quiz-results/:lessonId" element={<QuizResultsPage />} />
+            <Route path="/business-registration" element={<BusinessRegistrationPage />} />
+            <Route path="/loan/eligibility" element={<LoanEligibilityPage />} />
+            <Route path="/loan/offers" element={<LoanOffersPage />} />
+            <Route path="/loan/agreement" element={<LoanAgreementPage />} />
+            <Route path="/loan/debit-setup" element={<LoanDebitSetupPage />} />
+            <Route path="/loan/status" element={<LoanStatusPage />} />
+            <Route path="/loan/repayment-schedule" element={<LoanRepaymentSchedulePage />} />
+            {/* /insider admin portal */}
+            <Route path="/insider" element={<InsiderPortalPage />} />
+            <Route path="/insider/login" element={<InsiderLoginPage />} />
+            <Route path="/insider/mfa" element={<InsiderMfaPage />} />
+            <Route
+              path="/insider/admin"
+              element={
+                <ProtectedInsiderRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboardPage />
+                </ProtectedInsiderRoute>
+              }
+            />
+            <Route
+              path="/insider/analyst"
+              element={
+                <ProtectedInsiderRoute allowedRoles={['ANALYST']}>
+                  <AnalystDashboardPage />
+                </ProtectedInsiderRoute>
+              }
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

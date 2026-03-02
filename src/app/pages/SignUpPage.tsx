@@ -4,10 +4,13 @@ import { User, Mail, Phone, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react
 import { Button, Input, Checkbox, Alert } from '../components/remsana';
 import { LegalModals } from '../components/remsana/LegalModals';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
-import { register, canUseRegistrationApi } from '../api/authApi';
+import { useAuth } from '../context/AuthContext';
+import { validatePasswordStrength } from '../services/authService';
 
 export default function SignUpPage() {
   const navigate = useNavigate();
+  const { signup, isLoading: authLoading } = useAuth();
+  
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -17,29 +20,20 @@ export default function SignUpPage() {
     termsAccepted: false,
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [passwordStrength, setPasswordStrength] = useState<'weak' | 'fair' | 'good' | 'strong'>('weak');
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
 
-  const validatePassword = (password: string) => {
-    let strength: 'weak' | 'fair' | 'good' | 'strong' = 'weak';
-    let score = 0;
-
-    if (password.length >= 8) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-
-    if (score === 1) strength = 'weak';
-    else if (score === 2) strength = 'fair';
-    else if (score === 3) strength = 'good';
-    else if (score === 4) strength = 'strong';
-
-    setPasswordStrength(strength);
-    return password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password);
+  /**
+   * Validate password and update strength indicator
+   * Now requires special character (not optional)
+   */
+  const validatePassword = (password: string): boolean => {
+    const validation = validatePasswordStrength(password);
+    setPasswordStrength(validation.strength);
+    return validation.isValid;
   };
 
   const handlePasswordChange = (value: string) => {
@@ -47,57 +41,83 @@ export default function SignUpPage() {
     validatePassword(value);
   };
 
- const handleSubmit = async (e: React.FormEvent) => {
+ /**
+   * Handle form submission
+   * 
+   * Validates all fields, calls signup via AuthContext,
+   * and redirects to onboarding on success
+   */
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous errors
+    setErrors({});
+    
+    // Validate all fields
     const newErrors: Record<string, string> = {};
-    if (formData.fullName.length < 3) newErrors.fullName = 'Enter a valid name (3-50 characters)';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Invalid email format';
-    if (!/^[0-9]{10}$/.test(formData.phone.replace(/\s/g, ''))) newErrors.phone = 'Enter a valid Nigerian phone number';
-    if (!validatePassword(formData.password)) newErrors.password = "Password doesn't meet requirements";
-    if (!formData.termsAccepted) newErrors.terms = 'You must agree to the terms';
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      setIsLoading(true);
-      setErrors((prev) => ({ ...prev, submit: '' }));
-      if (canUseRegistrationApi()) {
-        try {
-          const data = await register({
-            email: formData.email,
-            password: formData.password,
-            full_name: formData.fullName,
-            phone_number: formData.phoneCountry + formData.phone.replace(/\s/g, ''),
-          });
-          localStorage.setItem('remsana_auth_token', data.access_token);
-          localStorage.setItem('remsana_refresh_token', data.refresh_token || '');
-          localStorage.setItem('remsana_user', JSON.stringify({
-            email: data.user.email,
-            name: data.user.full_name || formData.fullName,
-            phone: formData.phoneCountry + formData.phone,
-          }));
-          setIsLoading(false);
-          navigate('/onboarding');
-          return;
-        } catch (err: any) {
-          setErrors((prev) => ({ ...prev, submit: err?.response?.data?.message || err?.message || 'Registration failed. Please try again.' }));
-          setIsLoading(false);
-          return;
-        }
-      }
-      setTimeout(() => {
-        setIsLoading(false);
-        localStorage.setItem('remsana_user', JSON.stringify({ email: formData.email, name: formData.fullName, phone: formData.phone }));
-        localStorage.setItem('remsana_auth_token', 'test_token_' + Date.now());
-        navigate('/onboarding');
-      }, 1500);
+    
+    // Full name validation (3-50 characters)
+    if (formData.fullName.length < 3 || formData.fullName.length > 50) {
+      newErrors.fullName = 'Enter a valid name (3-50 characters)';
+    }
+    
+    // Email validation
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email format';
+    }
+    
+    // Nigerian phone validation (10 digits)
+    const cleanPhone = formData.phone.replace(/\s/g, '');
+    if (!/^[0-9]{10}$/.test(cleanPhone)) {
+      newErrors.phone = 'Enter a valid 10-digit Nigerian phone number';
+    }
+    
+    // Password validation (now requires special character)
+    if (!validatePassword(formData.password)) {
+      newErrors.password = 'Password must be 8+ characters with uppercase, lowercase, number, and special character';
+    }
+    
+    // Terms acceptance validation
+    if (!formData.termsAccepted) {
+      newErrors.terms = 'You must agree to the Terms of Service and Privacy Policy';
+    }
+    
+    // If validation errors exist, show them and stop
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    
+    // Call signup via AuthContext
+    try {
+      await signup({
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.fullName,
+        phone_number: formData.phoneCountry + cleanPhone,
+      });
+      
+      // Success! Redirect to onboarding
+      // Auth state is automatically updated by AuthContext
+      navigate('/onboarding');
+    } catch (error: any) {
+      // Show user-friendly error message
+      setErrors({
+        submit: error.message || 'Registration failed. Please try again.',
+      });
     }
   };
 
+  /**
+   * Password requirements checklist
+   * Now special character is REQUIRED (not optional)
+   */
   const passwordRequirements = [
     { met: formData.password.length >= 8, text: 'At least 8 characters' },
     { met: /[A-Z]/.test(formData.password), text: 'One uppercase letter' },
+    { met: /[a-z]/.test(formData.password), text: 'One lowercase letter' },
     { met: /[0-9]/.test(formData.password), text: 'One number' },
-    { met: /[^A-Za-z0-9]/.test(formData.password), text: 'One special character (optional)' },
+    { met: /[^A-Za-z0-9]/.test(formData.password), text: 'One special character (!@#$%^&*)' },
   ];
 
   return (
@@ -281,16 +301,17 @@ export default function SignUpPage() {
                 )}
               </div>
               {errors.submit && <Alert variant="error" message={errors.submit} className="mb-4" />}
+              
               {/* Create Account Button */}
               <Button
                 type="submit"
                 variant="primary"
                 size="lg"
                 className="w-full"
-                loading={isLoading}
-                disabled={isLoading}
+                loading={authLoading}
+                disabled={authLoading}
               >
-                {isLoading ? 'Creating account...' : 'Create Account'}
+                {authLoading ? 'Creating account...' : 'Create Account'}
               </Button>
             </form>
 
