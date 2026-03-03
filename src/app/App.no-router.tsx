@@ -1,5 +1,5 @@
 // Temporary version without router to test if react-router-dom is the issue
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 function SplashScreen() {
   const [progress, setProgress] = useState(0);

@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertCircle, CheckCircle, Info, AlertTriangle, X } from 'lucide-react';
 
 type AlertVariant = 'error' | 'warning' | 'success' | 'info';

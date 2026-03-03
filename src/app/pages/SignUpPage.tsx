@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Phone, Lock, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 import { Button, Input, Checkbox, Alert } from '../components/remsana';
@@ -21,18 +21,16 @@ export default function SignUpPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'fair' | 'good' | 'strong'>('weak');
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
 
   /**
-   * Validate password and update strength indicator
+   * Validate password
    * Now requires special character (not optional)
    */
   const validatePassword = (password: string): boolean => {
     const validation = validatePasswordStrength(password);
-    setPasswordStrength(validation.strength);
     return validation.isValid;
   };
 

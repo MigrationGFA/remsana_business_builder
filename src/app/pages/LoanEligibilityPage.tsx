@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Loader } from 'lucide-react';
 import { Card, CardContent, Button, Input, Alert, LinearProgress } from '../components/remsana';

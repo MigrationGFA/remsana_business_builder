@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardContent, Button, Badge } from '../components/remsana';

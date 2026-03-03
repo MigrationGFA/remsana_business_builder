@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, BarChart3 } from 'lucide-react';
 import { Button, Card, CardContent } from '../../components/remsana';

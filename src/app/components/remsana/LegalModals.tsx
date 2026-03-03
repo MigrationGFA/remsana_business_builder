@@ -1,4 +1,3 @@
-import React from 'react';
 import { Modal, ModalFooter, Button } from './index';
 
 interface LegalModalsProps {

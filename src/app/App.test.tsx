@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Minimal test version to check if React is working
 export default function AppTest() {
   return (

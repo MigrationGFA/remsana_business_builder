@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { TEST_CREDENTIALS } from '../utils/testData';
 import { Button } from './remsana';

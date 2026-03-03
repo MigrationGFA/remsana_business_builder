@@ -15,7 +15,7 @@
  * ```
  */
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import type { AuthState, User, SignupRequest, LoginRequest, StoredAuth } from '../types/auth.types';
 import * as authService from '../services/authService';
 

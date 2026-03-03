@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, User, Settings, Download, Play, BookOpen, Trophy, TrendingUp, Menu, LogOut, CheckCircle2, Clock, FileText, Shield, HelpCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge, LinearProgress, Modal, ModalFooter, Alert, LegalModals } from '../components/remsana';

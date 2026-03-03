@@ -1,10 +1,10 @@
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { getStoredInsiderAuth } from '../../api/insider/auth';
 import type { InsiderRole } from '../../api/insider/types';
+import type { ReactNode } from 'react';
 
 interface ProtectedInsiderRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
   allowedRoles?: InsiderRole[];
 }
 

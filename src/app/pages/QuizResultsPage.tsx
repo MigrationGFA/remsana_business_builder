@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { CheckCircle2, XCircle, Download, RotateCcw, ArrowRight } from 'lucide-react';
 import { Card, CardContent, Button, Badge } from '../components/remsana';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Upload, File, X, CheckCircle2, CreditCard, Building2, Smartphone, Lock, CreditCard as CardIcon, TrendingUp, Clock } from 'lucide-react';
 import { Card, CardContent, Button, Input, Alert, LinearProgress, Modal, ModalFooter } from '../components/remsana';

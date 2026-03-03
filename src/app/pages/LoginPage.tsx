@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 // Type for test credentials
 type TestCredential = { email: string; password: string };

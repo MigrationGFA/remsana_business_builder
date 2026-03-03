@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Edit, X, Clock } from 'lucide-react';
 import { Button, Card, Input, Alert, Modal, ModalFooter } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { getOnboardingProgress, saveOnboardingProgress, completeOnboarding, hasBackend } from '../api/onboardingApi';
 
 interface BusinessData {
   businessType: string;
@@ -97,6 +98,33 @@ export default function OnboardingPage() {
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
 
+  useEffect(() => {
+    if (hasBackend()) {
+      getOnboardingProgress()
+        .then((res) => {
+          if (res.form_data && Object.keys(res.form_data).length > 0) {
+            setFormData((prev) => ({ ...prev, ...res.form_data }));
+          }
+          if (res.current_step && res.current_step >= 1 && res.current_step <= 5) {
+            setCurrentStep(res.current_step);
+          }
+          if (res.is_complete) {
+            navigate('/dashboard');
+          }
+        })
+        .catch(() => { /* keep defaults */ });
+    } else {
+      const saved = localStorage.getItem('remsana_onboarding_progress');
+      if (saved) {
+        try {
+          const { currentStep: s, formData: f } = JSON.parse(saved);
+          if (s) setCurrentStep(s);
+          if (f) setFormData((prev) => ({ ...prev, ...f }));
+        } catch (_) {}
+      }
+    }
+  }, [navigate]);
+
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -140,58 +168,73 @@ export default function OnboardingPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (validateStep(currentStep)) {
       if (currentStep < totalSteps) {
+        // Auto-save progress before moving to next step
+        await saveProgress();
         setCurrentStep(currentStep + 1);
       }
     }
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
     if (currentStep > 1) {
+      // Auto-save progress before going back
+      await saveProgress();
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleSubmit = async () => {
     if (!validateStep(5)) return;
-
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      // Clear saved progress
-      localStorage.removeItem('remsana_onboarding_progress');
+    try {
+      if (hasBackend()) {
+        await completeOnboarding({ form_data: formData });
+      } else {
+        localStorage.removeItem('remsana_onboarding_progress');
+      }
       navigate('/dashboard');
-    }, 2000);
+    } catch (err: any) {
+      setErrors({ submit: err?.response?.data?.error || err?.message || 'Failed to complete' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const saveProgress = () => {
-    localStorage.setItem('remsana_onboarding_progress', JSON.stringify({
-      currentStep,
-      formData,
-      savedAt: new Date().toISOString(),
-    }));
+  const saveProgress = async () => {
+    if (hasBackend()) {
+      try {
+        await saveOnboardingProgress({ current_step: currentStep, form_data: formData });
+      } catch (_) { /* ignore save errors */ }
+    } else {
+      localStorage.setItem('remsana_onboarding_progress', JSON.stringify({
+        currentStep,
+        formData,
+        savedAt: new Date().toISOString(),
+      }));
+    }
   };
 
-  const handleExit = () => {
-    saveProgress();
+  const handleExit = async () => {
+    await saveProgress();
     setShowExitModal(true);
   };
 
-  const handleConfirmExit = () => {
-    saveProgress();
+  const handleConfirmExit = async () => {
+    await saveProgress();
     setShowExitModal(false);
     navigate('/dashboard');
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    await saveProgress();
     setShowSkipModal(true);
   };
 
-  const handleConfirmSkip = () => {
-    saveProgress();
+  const handleConfirmSkip = async () => {
+    await saveProgress();
     setShowSkipModal(false);
     navigate('/dashboard');
   };
@@ -294,6 +337,7 @@ export default function OnboardingPage() {
           <div className="flex gap-2">
             <select
               value="+234"
+              onChange={() => {}}
               className="px-3 py-2 border border-[#6B7C7C]/30 rounded-[8px] text-[14px] bg-white"
             >
               <option value="+234">+234</option>
