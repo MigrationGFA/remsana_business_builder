@@ -24,11 +24,32 @@ export default function ForgotPasswordPage() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('Invalid email format'); return; }
     setIsLoading(true);
     try {
-      if (hasBackend()) await forgotPassword(email);
-      else await new Promise((r) => setTimeout(r, 1000));
+      if (hasBackend()) {
+        await forgotPassword(email);
+      } else {
+        // Simulate API delay in development
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      // Always show success for security (don't reveal if email exists)
       setSuccess(true);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Something went wrong. Please try again.');
+      // Handle specific error types with user-friendly messages
+      let errorMessage = 'Unable to process your request. Please try again.';
+      
+      if (err?.message) {
+        // Use the specific error message from authApi
+        errorMessage = err.message;
+      } else if (err?.response?.status === 429) {
+        errorMessage = 'Too many reset attempts. Please wait a few minutes and try again.';
+      } else if (err?.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (!err?.response) {
+        errorMessage = 'Unable to connect to server. Check your internet connection and try again.';
+      } else if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
