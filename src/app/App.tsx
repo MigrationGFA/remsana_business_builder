@@ -25,6 +25,10 @@ import {
   ProtectedInsiderRoute,
 } from './pages/insider';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
+import ResetPasswordPage from './pages/ResetPasswordPage.tsx';
+import MfaChallengePage from './pages/MfaChallengePage.tsx';
+import MfaSetupPage from './pages/MfaSetupPage.tsx';
 
 /**
  * Main App Component
@@ -43,6 +47,10 @@ function App() {
             <Route path="/" element={<SplashScreen />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/mfa-challenge" element={<MfaChallengePage />} />
+          <Route path="/mfa-setup" element={<MfaSetupPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/learning" element={<LearningCentrePage />} />

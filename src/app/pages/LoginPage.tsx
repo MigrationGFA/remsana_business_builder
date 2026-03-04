@@ -65,10 +65,29 @@ export default function LoginPage() {
         navigate('/dashboard');
         return;
       } catch (err: any) {
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          'Unable to sign in. Please try again.';
+        // Handle specific error cases with user-friendly messages
+        let message = 'Unable to sign in. Please try again.';
+        
+        if (err?.response?.status === 401) {
+          // Authentication failed - don't reveal which field is wrong (security best practice)
+          message = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (err?.response?.status === 404) {
+          // Account not found
+          message = 'No account found with these credentials. Please sign up first.';
+        } else if (err?.response?.status === 429) {
+          // Too many attempts
+          message = 'Too many login attempts. Please wait a few minutes and try again.';
+        } else if (err?.response?.status === 500) {
+          // Server error
+          message = 'Server error. Please try again later.';
+        } else if (!err?.response) {
+          // Network error
+          message = 'Unable to connect to server. Please check your internet connection.';
+        } else if (err?.response?.data?.message) {
+          // Use server message if available
+          message = err.response.data.message;
+        }
+        
         setError(message);
         setIsLoading(false);
         return;
