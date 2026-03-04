@@ -1,8 +1,22 @@
 import axios, { AxiosError } from 'axios';
 
 // Base URL for the authoritative backend (PHP / CodeIgniter 4)
-// Configure via Vite env: VITE_API_BASE_URL="http://localhost:8080/api/v1"
+// IMPORTANT: 
+// - Development: Use relative path "/api/v1" (Vite proxy handles routing)
+// - Production: Must use full URL "https://backend-domain.com/api/v1" (no proxy)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+// Log configuration on startup (helps debug production issues)
+if (import.meta.env.DEV) {
+  console.log('🔧 API Configuration:', {
+    baseURL: API_BASE_URL || 'Not set',
+    mode: import.meta.env.MODE,
+    isRelativePath: API_BASE_URL.startsWith('/'),
+    note: API_BASE_URL.startsWith('/') 
+      ? 'Using relative path (Vite proxy will handle routing)'
+      : 'Using absolute URL (direct backend connection)'
+  });
+}
 
 export const api = axios.create({
   baseURL: API_BASE_URL || undefined,
