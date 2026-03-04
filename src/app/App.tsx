@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import SplashScreen from './pages/SplashScreen';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
@@ -37,6 +38,8 @@ import MfaSetupPage from './pages/MfaSetupPage.tsx';
  * - ErrorBoundary: Catches and displays React errors gracefully
  * - AuthProvider: Provides global authentication state to all routes
  * - Router: Handles client-side routing
+ * 
+ * SECURITY: All authenticated routes are wrapped with ProtectedRoute
  */
 function App() {
   return (
@@ -44,26 +47,32 @@ function App() {
       <AuthProvider>
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
+            {/* Public routes - no authentication required */}
             <Route path="/" element={<SplashScreen />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/mfa-challenge" element={<MfaChallengePage />} />
-          <Route path="/mfa-setup" element={<MfaSetupPage />} />
-            <Route path="/onboarding" element={<OnboardingPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/learning" element={<LearningCentrePage />} />
-            <Route path="/lesson/:lessonId" element={<LessonPlayerPage />} />
-            <Route path="/quiz/:lessonId" element={<QuizPage />} />
-            <Route path="/quiz-results/:lessonId" element={<QuizResultsPage />} />
-            <Route path="/business-registration" element={<BusinessRegistrationPage />} />
-            <Route path="/loan/eligibility" element={<LoanEligibilityPage />} />
-            <Route path="/loan/offers" element={<LoanOffersPage />} />
-            <Route path="/loan/agreement" element={<LoanAgreementPage />} />
-            <Route path="/loan/debit-setup" element={<LoanDebitSetupPage />} />
-            <Route path="/loan/status" element={<LoanStatusPage />} />
-            <Route path="/loan/repayment-schedule" element={<LoanRepaymentSchedulePage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/mfa-challenge" element={<MfaChallengePage />} />
+            
+            {/* Protected routes - require authentication */}
+            <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/learning" element={<ProtectedRoute><LearningCentrePage /></ProtectedRoute>} />
+            <Route path="/lesson/:lessonId" element={<ProtectedRoute><LessonPlayerPage /></ProtectedRoute>} />
+            <Route path="/quiz/:lessonId" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} />
+            <Route path="/quiz-results/:lessonId" element={<ProtectedRoute><QuizResultsPage /></ProtectedRoute>} />
+            <Route path="/business-registration" element={<ProtectedRoute><BusinessRegistrationPage /></ProtectedRoute>} />
+            <Route path="/mfa-setup" element={<ProtectedRoute><MfaSetupPage /></ProtectedRoute>} />
+            
+            {/* Loan flow - all protected */}
+            <Route path="/loan/eligibility" element={<ProtectedRoute><LoanEligibilityPage /></ProtectedRoute>} />
+            <Route path="/loan/offers" element={<ProtectedRoute><LoanOffersPage /></ProtectedRoute>} />
+            <Route path="/loan/agreement" element={<ProtectedRoute><LoanAgreementPage /></ProtectedRoute>} />
+            <Route path="/loan/debit-setup" element={<ProtectedRoute><LoanDebitSetupPage /></ProtectedRoute>} />
+            <Route path="/loan/status" element={<ProtectedRoute><LoanStatusPage /></ProtectedRoute>} />
+            <Route path="/loan/repayment-schedule" element={<ProtectedRoute><LoanRepaymentSchedulePage /></ProtectedRoute>} />
+            
             {/* /insider admin portal */}
             <Route path="/insider" element={<InsiderPortalPage />} />
             <Route path="/insider/login" element={<InsiderLoginPage />} />

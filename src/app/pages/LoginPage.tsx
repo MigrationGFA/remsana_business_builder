@@ -1,15 +1,4 @@
 import { useState } from 'react';
-
-// Type for test credentials
-type TestCredential = { email: string; password: string };
-
-// Extend import.meta.env type for VITE_TEST_CREDENTIALS
-interface ImportMetaEnv {
-  readonly VITE_TEST_CREDENTIALS?: string;
-}
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Checkbox, Alert } from '../components/remsana';
@@ -44,91 +33,61 @@ export default function LoginPage() {
       return;
     }
 
-    // If a backend base URL is configured, prefer calling the real API.
-    if (hasBackend()) {
-      try {
-        const response = await api.post('/auth/login', {
-          email: formData.email,
-          password: formData.password,
-        });
-
-        const data = response.data;
-        localStorage.setItem('remsana_auth_token', data.access_token || '');
-        localStorage.setItem(
-          'remsana_user',
-          JSON.stringify({
-            email: data.user?.email ?? formData.email,
-            name: data.user?.name ?? formData.email.split('@')[0],
-          })
-        );
-        setIsLoading(false);
-        navigate('/dashboard');
-        return;
-      } catch (err: any) {
-        // Handle specific error cases with user-friendly messages
-        let message = 'Unable to sign in. Please try again.';
-        
-        if (err?.response?.status === 401) {
-          // Authentication failed - don't reveal which field is wrong (security best practice)
-          message = 'Invalid email or password. Please check your credentials and try again.';
-        } else if (err?.response?.status === 404) {
-          // Account not found
-          message = 'No account found with these credentials. Please sign up first.';
-        } else if (err?.response?.status === 429) {
-          // Too many attempts
-          message = 'Too many login attempts. Please wait a few minutes and try again.';
-        } else if (err?.response?.status === 500) {
-          // Server error
-          message = 'Server error. Please try again later.';
-        } else if (!err?.response) {
-          // Network error
-          message = 'Unable to connect to server. Please check your internet connection.';
-        } else if (err?.response?.data?.message) {
-          // Use server message if available
-          message = err.response.data.message;
-        }
-        
-        setError(message);
-        setIsLoading(false);
-        return;
-      }
+    // SECURITY: Always require backend in production
+    if (!hasBackend()) {
+      setError('Service is currently unavailable. Please try again later.');
+      setIsLoading(false);
+      console.error('SECURITY ERROR: Backend URL not configured. Set VITE_API_BASE_URL in environment variables.');
+      return;
     }
 
-    // Fallback: local test credentials for development (no backend)
-    // Test credentials from environment (for development only)
-    const testCredentialsEnv = import.meta.env.VITE_TEST_CREDENTIALS;
-    const testCredentials: TestCredential[] = testCredentialsEnv
-      ? JSON.parse(testCredentialsEnv)
-      : [
-          // Default fallback (should be removed in production)
-          { email: 'test@remsana.com', password: 'Test1234!' },
-          { email: 'smeowner@business.ng', password: 'Business2026!' },
-          { email: 'demo@remsana.com', password: 'Demo1234!' },
-        ];
+    // Call the real API for authentication
+    try {
+      const response = await api.post('/auth/login', {
+        email: formData.email,
+        password: formData.password,
+      });
 
-    // Check if using test credentials
-    const isValidTestCredential = testCredentials.some(
-      (cred) => cred.email === formData.email && cred.password === formData.password
-    );
-
-    // Simulate API call
-    setTimeout(() => {
+      const data = response.data;
+      localStorage.setItem('remsana_auth_token', data.access_token || '');
+      localStorage.setItem(
+        'remsana_user',
+        JSON.stringify({
+          email: data.user?.email ?? formData.email,
+          name: data.user?.name ?? formData.email.split('@')[0],
+        })
+      );
       setIsLoading(false);
+      navigate('/dashboard');
+      return;
+    } catch (err: any) {
+      // Handle specific error cases with user-friendly messages
+      let message = 'Unable to sign in. Please try again.';
       
-      if (isValidTestCredential || formData.password.length >= 8) {
-        // Store user info for testing
-        localStorage.setItem('remsana_user', JSON.stringify({
-          email: formData.email,
-          name: formData.email.split('@')[0],
-        }));
-        localStorage.setItem('remsana_auth_token', 'test_token_' + Date.now());
-        
-        // Navigate to dashboard on success
-        navigate('/dashboard');
-      } else {
-        setError('Invalid email/phone or password');
+      if (err?.response?.status === 401) {
+        // Authentication failed - don't reveal which field is wrong (security best practice)
+        message = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (err?.response?.status === 404) {
+        // Account not found
+        message = 'No account found with these credentials. Please sign up first.';
+      } else if (err?.response?.status === 429) {
+        // Too many attempts
+        message = 'Too many login attempts. Please wait a few minutes and try again.';
+      } else if (err?.response?.status === 500) {
+        // Server error
+        message = 'Server error. Please try again later.';
+      } else if (!err?.response) {
+        // Network error
+        message = 'Unable to connect to server. Please check your internet connection.';
+      } else if (err?.response?.data?.message) {
+        // Use server message if available
+        message = err.response.data.message;
       }
-    }, 1500);
+      
+      setError(message);
+      setIsLoading(false);
+      return;
+    }
   };
 
   const handleChange = (field: string, value: string | boolean) => {

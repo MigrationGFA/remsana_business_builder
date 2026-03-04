@@ -1,18 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import { TEST_CREDENTIALS } from '../utils/testData';
 import { Button } from './remsana';
 
 // Development helper component - shows test login buttons
+// SECURITY: This component is ONLY for development. Never use in production!
 export function TestLoginHelper() {
   const navigate = useNavigate();
 
   const handleQuickLogin = (email: string, password: string) => {
-    localStorage.setItem('remsana_user', JSON.stringify({
-      email,
-      name: email.split('@')[0],
-    }));
-    localStorage.setItem('remsana_auth_token', 'test_token_' + Date.now());
-    navigate('/dashboard');
+    // DISABLED: Direct localStorage manipulation bypasses authentication
+    console.warn('⚠️ TestLoginHelper: Direct login is disabled. Please use proper authentication.');
+    navigate('/login');
   };
 
   // Only show in development
@@ -40,26 +37,26 @@ export function TestLoginHelper() {
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => handleQuickLogin(TEST_CREDENTIALS.admin.email, TEST_CREDENTIALS.admin.password)}
+          onClick={() => navigate('/login')}
           style={{ fontSize: '12px' }}
         >
-          Login as Test User
+          Go to Login Page
         </Button>
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => handleQuickLogin(TEST_CREDENTIALS.smeOwner.email, TEST_CREDENTIALS.smeOwner.password)}
+          onClick={() => navigate('/signup')}
           style={{ fontSize: '12px' }}
         >
-          Login as SME Owner
+          Go to Sign Up Page
         </Button>
         <Button
           variant="secondary"
           size="sm"
-          onClick={() => handleQuickLogin(TEST_CREDENTIALS.demo.email, TEST_CREDENTIALS.demo.password)}
+          onClick={() => console.log('Backend URL:', import.meta.env.VITE_API_BASE_URL || 'NOT SET')}
           style={{ fontSize: '12px' }}
         >
-          Login as Demo User
+          Check Backend Config
         </Button>
       </div>
       <p style={{ fontSize: '10px', color: '#6B7C7C', marginTop: '8px', marginBottom: 0 }}>
