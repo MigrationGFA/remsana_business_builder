@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Checkbox, Alert } from '../components/remsana';
 import { LegalModals } from '../components/remsana/LegalModals';
-import { TestLoginHelper } from '../components/TestLoginHelper';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
 import { api, hasBackend } from '../api/httpClient';
 
@@ -227,7 +226,7 @@ export default function LoginPage() {
       </main>
 
       {/* Test Login Helper - Development only */}
-      <TestLoginHelper />
+      {/* <TestLoginHelper /> */}
 
       {/* Legal Modals */}
       <LegalModals

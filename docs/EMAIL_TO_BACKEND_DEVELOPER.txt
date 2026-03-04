@@ -1,0 +1,68 @@
+Subject: URGENT: CORS Configuration Required for Production API
+
+Hi [Backend Developer Name],
+
+The frontend is now live at https://businessbuilder-test.azurewebsites.net but all API calls are being blocked by CORS policy.
+
+ERROR:
+------
+"Access to XMLHttpRequest at 'https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login' 
+from origin 'https://businessbuilder-test.azurewebsites.net' has been blocked by CORS policy: 
+No 'Access-Control-Allow-Origin' header is present on the requested resource."
+
+
+WHAT'S NEEDED:
+--------------
+Add CORS headers to allow requests from the frontend domain.
+
+
+QUICK FIX:
+----------
+1. Create app/Filters/Cors.php (code attached in BACKEND_CORS_FIX_REQUIRED.md)
+2. Register filter in app/Config/Filters.php
+3. Deploy changes
+
+
+ALLOWED DOMAINS:
+----------------
+- https://businessbuilder-test.azurewebsites.net (production)
+- http://localhost:5174 (development)
+
+
+REQUIRED HEADERS:
+-----------------
+Access-Control-Allow-Origin: https://businessbuilder-test.azurewebsites.net
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With
+Access-Control-Allow-Credentials: true
+
+
+TESTING:
+--------
+After deployment, run this from command line:
+
+curl -X OPTIONS https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
+  -H "Origin: https://businessbuilder-test.azurewebsites.net" \
+  -H "Access-Control-Request-Method: POST" \
+  -v
+
+You should see "Access-Control-Allow-Origin" in the response headers.
+
+
+FULL DOCUMENTATION:
+-------------------
+See attached file: BACKEND_CORS_FIX_REQUIRED.md
+Contains complete step-by-step implementation guide with code.
+
+
+IMPACT:
+-------
+Priority: HIGH
+All users are currently unable to login or signup on production.
+Estimated fix time: ~30 minutes
+
+
+Please let me know once this is deployed so I can verify. Thanks!
+
+Best regards,
+[Your Name]
