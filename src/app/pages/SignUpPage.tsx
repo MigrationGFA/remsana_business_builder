@@ -99,10 +99,25 @@ export default function SignUpPage() {
       // Auth state is automatically updated by AuthContext
       navigate('/onboarding');
     } catch (error: any) {
-      // Show user-friendly error message
-      setErrors({
-        submit: error.message || 'Registration failed. Please try again.',
-      });
+      console.log('🔴 Signup failed:', error);
+      
+      // Handle specific error cases
+      let errorMessage = error.message || 'Registration failed. Please try again.';
+      
+      // Check if it's a duplicate email error
+      if (errorMessage.toLowerCase().includes('already exists') || 
+          errorMessage.toLowerCase().includes('email') && errorMessage.toLowerCase().includes('exists')) {
+        // Show as email field error
+        setErrors({
+          email: 'This email is already registered. Please login instead.',
+          submit: errorMessage,
+        });
+      } else {
+        // Show as general submit error
+        setErrors({
+          submit: errorMessage,
+        });
+      }
     }
   };
 

@@ -30,13 +30,24 @@ export async function signup(payload: SignupRequest): Promise<AuthResponse> {
     
     return response.data;
   } catch (error: any) {
+    // Debug logging to help identify the issue
+    console.log('🔴 Signup Error Details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      message: error.response?.data?.message,
+      fullError: error.response?.data,
+    });
+    
     // Transform API errors into user-friendly messages
     if (error.response?.status === 400) {
       throw new Error(error.response.data?.message || 'Invalid registration data');
-    } else if (error.response?.status === 409) {
-      throw new Error('An account with this email already exists');
-    } else if (error.response?.status === 422) {
-      throw new Error('Please check your information and try again');
+    } else if (error.response?.status === 409 || error.response?.status === 422) {
+      // Handle both 409 (Conflict) and 422 (Unprocessable Entity) for duplicate email
+      const message = error.response.data?.message;
+      if (message && (message.toLowerCase().includes('email') || message.toLowerCase().includes('exists') || message.toLowerCase().includes('already'))) {
+        throw new Error('An account with this email already exists');
+      }
+      throw new Error(message || 'An account with this email already exists');
     } else if (!error.response) {
       throw new Error('Unable to connect to server. Please check your internet connection');
     }
