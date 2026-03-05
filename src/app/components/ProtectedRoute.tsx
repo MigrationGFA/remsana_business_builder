@@ -28,8 +28,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     const token = localStorage.getItem('remsana_auth_token');
     const user = localStorage.getItem('remsana_user');
-
+    console.log('ProtectedRoute check - token:', token);
+    console.log('ProtectedRoute check - user:', user);
     // Check if user is authenticated
+    
     if (!token || !user) {
       console.warn('🔒 ProtectedRoute: User not authenticated. Redirecting to login...');
       
