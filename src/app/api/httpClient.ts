@@ -39,6 +39,17 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
+    if (!error.response) {
+      const method = error.config?.method?.toUpperCase() || 'UNKNOWN_METHOD';
+      const url = error.config?.baseURL
+        ? `${error.config.baseURL}${error.config.url || ''}`
+        : error.config?.url || 'UNKNOWN_URL';
+      console.error('🚫 Network/CORS error:', {
+        message: error.message,
+        method,
+        url,
+      });
+    }
     if (error.response?.status === 401) {
       // Try to refresh token
       const refreshToken = localStorage.getItem('remsana_refresh_token');

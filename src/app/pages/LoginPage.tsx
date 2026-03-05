@@ -68,13 +68,13 @@ export default function LoginPage() {
         message = 'Invalid email or password. Please check your credentials and try again.';
       } else if (err?.response?.status === 404) {
         // Account not found
-        message = 'No account found with these credentials. Please sign up first.';
+        message = 'Something went wrong. Please try again.';
       } else if (err?.response?.status === 429) {
         // Too many attempts
         message = 'Too many login attempts. Please wait a few minutes and try again.';
       } else if (err?.response?.status === 500) {
         // Server error
-        message = 'Server error. Please try again later.';
+        message = 'Something went wrong. Please try again.';
       } else if (!err?.response) {
         // Network error
         message = 'Unable to connect to server. Please check your internet connection.';
