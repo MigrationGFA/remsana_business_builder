@@ -48,6 +48,7 @@ export default function LoginPage() {
       });
 
       const data = response.data;
+      console.log("data",data)
       console.log('Login success - token:', data.access_token || null);
       console.log('Login success - user:', data.user || null);
       localStorage.setItem('remsana_auth_token', data.access_token || '');

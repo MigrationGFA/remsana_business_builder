@@ -21,6 +21,7 @@ export default function SignUpPage() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -50,6 +51,7 @@ export default function SignUpPage() {
     
     // Clear previous errors
     setErrors({});
+    setSuccessMessage(null);
     
     // Validate all fields
     const newErrors: Record<string, string> = {};
@@ -95,11 +97,13 @@ export default function SignUpPage() {
         phone_number: formData.phoneCountry + cleanPhone,
       });
       
-      // Success! Redirect to onboarding
+      console.log('Signup success:', { email: formData.email });
+      setSuccessMessage('Signup successful! Redirecting to onboarding...');
       // Auth state is automatically updated by AuthContext
-      navigate('/onboarding');
+      setTimeout(() => navigate('/onboarding'), 1000);
     } catch (error: any) {
       console.log('🔴 Signup failed:', error);
+      setSuccessMessage(null);
       
       // Handle specific error cases
       let errorMessage = error.message || 'Registration failed. Please try again.';
@@ -313,6 +317,7 @@ export default function SignUpPage() {
                   <p className="text-[12px] text-[#C01F2F] mt-1">{errors.terms}</p>
                 )}
               </div>
+              {successMessage && <Alert variant="success" message={successMessage} className="mb-4" />}
               {errors.submit && <Alert variant="error" message={errors.submit} className="mb-4" />}
               
               {/* Create Account Button */}
