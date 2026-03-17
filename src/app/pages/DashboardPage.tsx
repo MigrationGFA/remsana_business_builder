@@ -1,8 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, User, Settings, Download, Play, BookOpen, Trophy, TrendingUp, Menu, LogOut, CheckCircle2, Clock, FileText, Shield, HelpCircle } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent, Button, Badge, LinearProgress, Modal, ModalFooter, Alert, LegalModals } from '../components/remsana';
+import { Bell, User, Download, Play, BookOpen, Trophy, TrendingUp, LogOut, Clock, HelpCircle } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Button, LinearProgress, Modal, ModalFooter, LegalModals } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { getNavbarNotifications, getNavbarProfile, type NavbarNotification, type NavbarProfile } from '../api/navbarApi';
+import { dashboardApi } from '../api/dashboardApi';
+import { hasBackend } from '../api/httpClient';
+
+type NavbarLink = {
+  id: string;
+  label: string;
+  path: string;
+};
+
+const defaultNavLinks: NavbarLink[] = [
+  { id: 'learning', label: 'Learning', path: '/learning' },
+  { id: 'onboarding', label: 'Onboarding', path: '/onboarding' },
+];
+
+/** Skeleton block used while dashboard data is loading */
+function SkeletonBlock({ className = '' }: { className?: string }) {
+  return <div className={`bg-[#E6E8EE] rounded-[8px] animate-pulse ${className}`} />;
+}
+
+function CardSkeleton({ title }: { title: string }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <SkeletonBlock className="h-6 w-32" />
+        <SkeletonBlock className="h-4 w-full" />
+        <SkeletonBlock className="h-4 w-3/4" />
+        <SkeletonBlock className="h-10 w-full mt-4" />
+        <div className="pt-4 border-t border-[#6B7C7C]/20 space-y-2">
+          <SkeletonBlock className="h-3 w-2/3" />
+          <SkeletonBlock className="h-3 w-1/2" />
+          <SkeletonBlock className="h-3 w-1/3" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -12,6 +52,17 @@ export default function DashboardPage() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [savedOnboardingProgress, setSavedOnboardingProgress] = useState<any>(null);
+  const [navbarLoading, setNavbarLoading] = useState(true);
+  const [navbarProfile, setNavbarProfile] = useState<NavbarProfile | null>(null);
+  const [navbarNotifications, setNavbarNotifications] = useState<NavbarNotification[]>([]);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [registrationStatus, setRegistrationStatus] = useState<any>(null);
+  const [learningProgress, setLearningProgress] = useState<any>(null);
+  const [certificates, setCertificates] = useState<any[]>([]);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [recommendedResources, setRecommendedResources] = useState<any[]>([]);
 
   const handleLogout = () => {
     localStorage.removeItem('remsana_auth_token');
@@ -32,10 +83,90 @@ export default function DashboardPage() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!showProfileMenu) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showProfileMenu]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadNavbar = async () => {
+      setNavbarLoading(true);
+      try {
+        const [profile, notifications] = await Promise.all([
+          getNavbarProfile(),
+          getNavbarNotifications(),
+        ]);
+
+        if (!isMounted) {
+          return;
+        }
+
+        setNavbarProfile(profile);
+        setNavbarNotifications(notifications ?? []);
+      } catch (error) {
+        console.error('Failed to load navbar data:', error);
+      } finally {
+        if (isMounted) {
+          setNavbarLoading(false);
+        }
+      }
+    };
+
+    loadNavbar();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (hasBackend()) {
+      setDashboardLoading(true);
+      dashboardApi.getMe().then((data) => {
+        if (data) {
+          console.log('📋 Dashboard API response:', JSON.stringify(data, null, 2));
+          console.log('📋 registrationStatus:', data.registrationStatus);
+          setRegistrationStatus(data.registrationStatus || null);
+          setLearningProgress(data.learningProgress || null);
+          setCertificates(data.certificates || []);
+          setRecentActivity(data.recentActivity || []);
+          setRecommendedResources(data.recommendedResources || []);
+        }
+      }).catch((err) => {
+        console.warn('Dashboard API not available yet:', err.message);
+      }).finally(() => {
+        setDashboardLoading(false);
+      });
+    } else {
+      setDashboardLoading(false);
+    }
+  }, []);
+
   // Check for active loan
-  const activeLoan = localStorage.getItem('loan_debit_setup') === 'true' 
-    ? JSON.parse(localStorage.getItem('selected_loan_offer') || '{}')
-    : null;
+  const activeLoan = (() => {
+    try {
+      if (localStorage.getItem('loan_debit_setup') === 'true') {
+        return JSON.parse(localStorage.getItem('selected_loan_offer') || '{}');
+      }
+    } catch {
+      // Malformed JSON in localStorage
+    }
+    return null;
+  })();
 
   const handleDownloadCertificate = () => {
     setDownloadingCertificate(true);
@@ -55,59 +186,18 @@ export default function DashboardPage() {
     localStorage.removeItem('remsana_onboarding_progress');
     setSavedOnboardingProgress(null);
   };
-  const registrationStatus = {
-    status: 'verification_in_progress' as const,
-    paymentStatus: 'verified' as const,
-    paymentDate: '2026-01-25',
-    paymentMethod: 'Paystack',
-    paymentAmount: 25000,
-    transactionReference: 'TXN-1769542087',
-    approvalDate: null,
-    certificateUrl: null,
-    businessName: 'My Amazing Business Inc.',
-    businessType: 'Limited Liability Company',
-    location: 'Lagos Island, Lagos',
-    submittedToCAC: false,
-    estimatedCompletionDate: '2026-02-20',
+  const formatDate = (value?: string) => {
+    if (!value) {
+      return '—';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
-
-  const learningProgress = {
-    currentDay: 23,
-    totalDays: 100,
-    completionPercentage: 23,
-    lessonsCompleted: 23,
-    averageScore: 84,
-    lastCompletedLesson: {
-      day: 23,
-      title: 'Pricing Strategy & Positioning',
-      score: 88,
-      completedAt: '2026-01-26',
-    },
-    estimatedCompletionDate: '2026-04-20',
-  };
-
-  const certificates = [
-    {
-      id: '1',
-      title: 'Business Fundamentals',
-      phase: 1,
-      earnedDate: '2026-01-15',
-      certificateUrl: '/certificates/fundamentals.pdf',
-    },
-  ];
-
-  const recentActivity = [
-    { type: 'lesson', text: 'Completed Lesson 23 - Pricing Strategy & Positioning', score: 88, time: 'Today, 2:30 PM' },
-    { type: 'badge', text: 'Unlocked Badge "Weekly Streaker"', time: 'Today, 2:15 PM' },
-    { type: 'certificate', text: 'Certificate Ready - Business Fundamentals', time: 'Yesterday, 11:20 AM' },
-    { type: 'lesson', text: 'Started Day 22 - Market Research Techniques', time: '2 days ago' },
-    { type: 'quiz', text: 'Quiz Passed - Financial Management Basics', score: 92, time: '3 days ago' },
-  ];
-
-  const recommendedResources = [
-    { id: '1', title: 'Financial Planning Template', category: 'Finance', format: 'xlsx', size: '2.4 MB' },
-    { id: '2', title: 'Marketing Basics Guide', category: 'Marketing', format: 'pdf', size: '5.2 MB' },
-  ];
+  const displayName = navbarProfile?.name || navbarProfile?.email?.split('@')[0] || 'User';
+  const unreadNotifications = navbarNotifications.filter((notification) => !notification.read).length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -169,33 +259,90 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center flex-wrap gap-1 sm:gap-2">
-            <button 
-              onClick={() => navigate('/learning')}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 text-[12px] sm:text-[14px] text-[#1C1C8B] hover:bg-[#f3f0fa] rounded-[8px] transition-colors font-medium"
-            >
-              Learning
-            </button>
-            <button 
-              onClick={() => navigate('/onboarding')}
-              className="px-3 sm:px-4 py-1.5 sm:py-2 text-[12px] sm:text-[14px] text-[#1C1C8B] hover:bg-[#f3f0fa] rounded-[8px] transition-colors font-medium"
-            >
-              Onboarding
-            </button>
-            <button className="relative p-1.5 sm:p-2 hover:bg-[#f3f0fa] rounded-full transition-colors">
-              <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-[#6B7C7C]" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-[#C01F2F] rounded-full"></span>
-            </button>
-            <button 
+            {defaultNavLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => navigate(link.path)}
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-[12px] sm:text-[14px] text-[#1C1C8B] hover:bg-[#f3f0fa] rounded-[8px] transition-colors font-medium"
+              >
+                {link.label}
+              </button>
+            ))}
+            {navbarLoading ? (
+              <div className="h-8 w-8 rounded-full bg-[#f3f0fa] animate-pulse" />
+            ) : (
+              <button className="relative p-1.5 sm:p-2 hover:bg-[#f3f0fa] rounded-full transition-colors" title="Notifications">
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-[#6B7C7C]" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[8px] h-2 px-1 bg-[#C01F2F] rounded-full text-[8px] text-white flex items-center justify-center">
+                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                  </span>
+                )}
+              </button>
+            )}
+            <button
               onClick={() => setShowHelpModal(true)}
               className="p-1.5 sm:p-2 hover:bg-[#f3f0fa] rounded-full transition-colors"
               title="Help & FAQ"
             >
               <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#6B7C7C]" />
             </button>
-            <button className="p-1.5 sm:p-2 hover:bg-[#f3f0fa] rounded-full transition-colors">
-              <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#6B7C7C]" />
-            </button>
-            <button 
+            {navbarLoading ? (
+              <div className="h-8 w-8 rounded-full bg-[#f3f0fa] animate-pulse" />
+            ) : (
+              <div className="relative" ref={profileMenuRef}>
+                <button
+                  className="p-1.5 sm:p-2 hover:bg-[#f3f0fa] rounded-full transition-colors"
+                  title={navbarProfile?.email || 'User profile'}
+                  onClick={() => setShowProfileMenu((prev) => !prev)}
+                >
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-[#6B7C7C]" />
+                </button>
+                {showProfileMenu && (
+                  <div className="absolute right-0 mt-2 w-72 rounded-[12px] border border-[#E6E8EE] bg-white shadow-lg z-20">
+                    <div className="px-4 py-3 border-b border-[#E6E8EE]">
+                      <p className="text-[14px] font-semibold text-[#1F2121]">
+                        {navbarProfile?.name || 'Profile'}
+                      </p>
+                      <p className="text-[12px] text-[#6B7C7C] truncate">
+                        {navbarProfile?.email || '—'}
+                      </p>
+                    </div>
+                    <div className="px-4 py-3 space-y-2 text-[12px] text-[#1F2121]">
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7C7C]">Phone</span>
+                        <span>{navbarProfile?.phone || '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7C7C]">Plan</span>
+                        <span className="capitalize">{navbarProfile?.tier || '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7C7C]">Status</span>
+                        <span className="capitalize">{navbarProfile?.status || '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7C7C]">MFA</span>
+                        <span>{navbarProfile?.mfaEnabled ? 'Enabled' : 'Disabled'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7C7C]">Member since</span>
+                        <span>{formatDate(navbarProfile?.signupDate)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7C7C]">Assessment</span>
+                        <span>{navbarProfile?.assessmentComplete ? 'Complete' : 'Pending'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#6B7C7C]">NPS</span>
+                        <span>{navbarProfile?.npsScore ?? '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <button
               onClick={handleLogout}
               className="p-1.5 sm:p-2 hover:bg-[#f3f0fa] rounded-full transition-colors"
               title="Logout"
@@ -210,7 +357,7 @@ export default function DashboardPage() {
       <section className="bg-white border-b border-[#6B7C7C]/20">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <h2 className="text-[24px] font-semibold text-[#1F2121] mb-1">
-            👋 Welcome back, John!
+            👋 Welcome back, {displayName}!
           </h2>
           <p className="text-[14px] text-[#6B7C7C]">
             Here's what's happening with your business
@@ -262,6 +409,9 @@ export default function DashboardPage() {
         {/* Status Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {/* Registration Status Card */}
+          {dashboardLoading ? (
+            <CardSkeleton title="📋 Business Registration" />
+          ) : registrationStatus ? (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -364,6 +514,12 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+          ) : (
+            <Card>
+              <CardHeader><CardTitle className="flex items-center gap-2">📋 Business Registration</CardTitle></CardHeader>
+              <CardContent><p className="text-[14px] text-[#6B7C7C]">No registration data available yet.</p></CardContent>
+            </Card>
+          )}
 
           {/* Active Loan Card */}
           {activeLoan && activeLoan.loanAmount && (
@@ -422,6 +578,9 @@ export default function DashboardPage() {
           )}
 
           {/* Learning Progress Card */}
+          {dashboardLoading ? (
+            <CardSkeleton title="📚 Learning Progress" />
+          ) : learningProgress ? (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -471,13 +630,27 @@ export default function DashboardPage() {
               >
                 Continue Learning ➜
               </Button>
-              <p className="text-[12px] text-[#6B7C7C]">
-                Last Lesson: Day {learningProgress.lastCompletedLesson.day} ({learningProgress.lastCompletedLesson.title})
-              </p>
+              {learningProgress.lastCompletedLesson && (
+                <p className="text-[12px] text-[#6B7C7C]">
+                  Last Lesson: Day {learningProgress.lastCompletedLesson.day} ({learningProgress.lastCompletedLesson.title})
+                </p>
+              )}
             </CardContent>
           </Card>
+          ) : (
+            <Card>
+              <CardHeader><CardTitle className="flex items-center gap-2">📚 Learning Progress</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-[14px] text-[#6B7C7C] mb-4">No learning data available yet.</p>
+                <Button variant="primary" size="md" className="w-full" onClick={() => navigate('/learning')}>Start Learning ➜</Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Certificates & Badges Card */}
+          {dashboardLoading ? (
+            <CardSkeleton title="🏆 Certificates & Badges" />
+          ) : (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -494,10 +667,10 @@ export default function DashboardPage() {
                         ⭐ {cert.title}
                       </h4>
                       <p className="text-[12px] text-[#6B7C7C]">
-                        Completed: {new Date(cert.earnedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        Completed: {cert.earnedDate ? new Date(cert.earnedDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                       </p>
                       <p className="text-[12px] text-[#6B7C7C]">
-                        Earned: Phase {cert.phase} Completion
+                        {cert.phase ? `Earned: Phase ${cert.phase} Completion` : 'Certificate earned'}
                       </p>
                     </div>
                   </div>
@@ -533,8 +706,12 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+          )}
 
           {/* Quick Actions Card */}
+          {dashboardLoading ? (
+            <CardSkeleton title="⚡ Quick Actions" />
+          ) : (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -548,13 +725,13 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-2">
                       <Play className="w-4 h-4 text-[#1C1C8B]" />
                       <span className="text-[14px] font-medium text-[#1F2121]">
-                        Continue Day {learningProgress.currentDay + 1}
+                        Continue Day {(learningProgress?.currentDay ?? 0) + 1}
                       </span>
                     </div>
                     <Button 
                       variant="primary" 
                       size="sm"
-                      onClick={() => navigate(`/lesson/${learningProgress.currentDay + 1}`)}
+                      onClick={() => navigate(`/lesson/${(learningProgress?.currentDay ?? 0) + 1}`)}
                     >
                       Start ➜
                     </Button>
@@ -581,7 +758,7 @@ export default function DashboardPage() {
                     </Button>
                   </div>
                   <p className="text-[12px] text-[#6B7C7C]">
-                    Leadership Fundamentals - Score: 72% (Retake)
+                    Leadership Fundamentals - Score: 0% (Retake)
                   </p>
                 </div>
 
@@ -604,6 +781,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+          )}
         </div>
 
         {/* Quick Navigation Section */}
@@ -664,6 +842,19 @@ export default function DashboardPage() {
           <h3 className="text-[18px] font-semibold text-[#1F2121] mb-4">
             📚 Recommended Resources
           </h3>
+          {dashboardLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2].map((i) => (
+                <Card key={i}>
+                  <CardContent className="p-4 space-y-3">
+                    <SkeletonBlock className="h-4 w-2/3" />
+                    <SkeletonBlock className="h-3 w-1/3" />
+                    <SkeletonBlock className="h-3 w-1/4" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : recommendedResources.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {recommendedResources.map((resource) => (
               <Card key={resource.id} variant="hoverable">
@@ -689,6 +880,9 @@ export default function DashboardPage() {
               </Card>
             ))}
           </div>
+          ) : (
+            <Card><CardContent className="p-4"><p className="text-[14px] text-[#6B7C7C]">No recommended resources available yet.</p></CardContent></Card>
+          )}
         </section>
 
         {/* Recent Activity */}
@@ -696,6 +890,21 @@ export default function DashboardPage() {
           <h3 className="text-[18px] font-semibold text-[#1F2121] mb-4">
             📰 Recent Activity
           </h3>
+          {dashboardLoading ? (
+            <Card>
+              <CardContent className="p-4 space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-start gap-3 pb-4 border-b border-[#6B7C7C]/10 last:border-0 last:pb-0">
+                    <SkeletonBlock className="w-8 h-8 rounded-full flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <SkeletonBlock className="h-4 w-full" />
+                      <SkeletonBlock className="h-3 w-1/3" />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : recentActivity.length > 0 ? (
           <Card>
             <CardContent className="p-4">
               <div className="space-y-4">
@@ -743,6 +952,9 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+          ) : (
+            <Card><CardContent className="p-4"><p className="text-[14px] text-[#6B7C7C]">No recent activity yet.</p></CardContent></Card>
+          )}
         </section>
       </main>
 

@@ -26,10 +26,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
 import remsanaIcon from '../../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
 import { getInsiderUser, insiderLogout } from '../../api/insider/auth';
+import type { AlertItem } from '../../api/insider/types';
 import {
   MOCK_QUICK_STATS,
   MOCK_PLATFORM_HEALTH,
-  MOCK_ALERTS,
   MOCK_USERS,
   MOCK_AUDIT_LOGS,
 } from '../../api/insider/mockData';
@@ -38,6 +38,7 @@ import {
   getAdminPlatformHealth,
   getAdminUsers,
   getAdminAuditLogs,
+  getAdminAlerts,
 } from '../../api/insiderApi';
 
 type AdminTab = 'dashboard' | 'users' | 'financials' | 'cac' | 'content' | 'system' | 'audit';
@@ -48,6 +49,7 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [stats, setStats] = useState(MOCK_QUICK_STATS);
   const [health, setHealth] = useState(MOCK_PLATFORM_HEALTH);
+  const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [users, setUsers] = useState(MOCK_USERS);
   const [auditLogs, setAuditLogs] = useState(MOCK_AUDIT_LOGS);
   const [loading, setLoading] = useState(false);
@@ -70,15 +72,17 @@ export default function AdminDashboardPage() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsData, healthData, usersData, logsData] = await Promise.all([
+      const [statsData, healthData, usersData, logsData, alertsData] = await Promise.all([
         getAdminQuickStats(),
         getAdminPlatformHealth(),
         getAdminUsers(1, 50),
         getAdminAuditLogs(100),
+        getAdminAlerts(),
       ]);
 
       if (statsData) setStats(statsData);
       if (healthData) setHealth(healthData);
+      if (alertsData) setAlerts(alertsData);
       if (usersData) setUsers(usersData.data);
       if (logsData) setAuditLogs(logsData);
     } catch (error) {
@@ -150,7 +154,7 @@ export default function AdminDashboardPage() {
               <CardHeader><CardTitle className="text-[16px] flex items-center gap-2"><AlertCircle className="w-4 h-4" /> Alerts &amp; Actions (Priority Inbox)</CardTitle></CardHeader>
               <CardContent>
                 <ul className="space-y-3">
-                  {MOCK_ALERTS.map((a) => (
+                  {alerts.map((a) => (
                     <li key={a.id} className="flex flex-wrap items-center gap-2 py-2 border-b border-gray-100 last:border-0">
                       <span className="font-medium">{a.priority}) {a.title}</span>
                       {a.detail && <span className="text-[#6B7C7C]">{a.detail}</span>}

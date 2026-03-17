@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Clock, TrendingDown } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock } from 'lucide-react';
 import { Card, CardContent, Button, Badge, Alert } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { loansApi } from '../api/loansApi';
 
 interface LoanOffer {
   offerId: string;
@@ -19,34 +20,7 @@ interface LoanOffer {
   badge?: string;
 }
 
-const MOCK_OFFERS: LoanOffer[] = [
-  {
-    offerId: 'off_lendsqr_001',
-    lender: 'Lendsqr',
-    loanAmount: 25000,
-    apr: 8.5,
-    monthlyPayment: 2150,
-    termMonths: 12,
-    totalInterest: 2800,
-    totalRepayment: 27800,
-    processingTime: '2-4 hours',
-    approvalCertainty: 0.92,
-    badge: 'Best Rate',
-  },
-  {
-    offerId: 'off_flutterwave_001',
-    lender: 'Flutterwave Lending',
-    loanAmount: 25000,
-    apr: 12.0,
-    monthlyPayment: 2200,
-    termMonths: 12,
-    totalInterest: 3600,
-    totalRepayment: 28400,
-    processingTime: 'Same-day',
-    approvalCertainty: 0.88,
-    badge: 'Fastest Approval',
-  },
-];
+
 
 export default function LoanOffersPage() {
   const navigate = useNavigate();
@@ -55,11 +29,15 @@ export default function LoanOffersPage() {
   const [selectedOffer, setSelectedOffer] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate API call to get offers
-    setTimeout(() => {
-      setOffers(MOCK_OFFERS);
-      setIsLoading(false);
-    }, 1500);
+    loansApi.getOffers()
+      .then((data) => {
+        setOffers(data);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setOffers([]);
+        setIsLoading(false);
+      });
   }, []);
 
   const handleSelectOffer = (offerId: string) => {

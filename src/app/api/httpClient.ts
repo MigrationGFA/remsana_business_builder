@@ -32,14 +32,33 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  const baseURL = config.baseURL || '';
-  const path = config.url || '';
-  const fullUrl = `${baseURL}${path}`;
-  console.log('➡️ API request:', { method: config.method?.toUpperCase(), url: fullUrl });
+  if (import.meta.env.DEV) {
+    const baseURL = config.baseURL || '';
+    const path = config.url || '';
+    console.log('➡️ API request:', { method: config.method?.toUpperCase(), url: `${baseURL}${path}` });
+  }
   return config;
 });
 
 // Handle token refresh on 401
+// Uses a lock to prevent multiple simultaneous refresh attempts when
+// several API calls return 401 at the same time (e.g. during dashboard load).
+let isRefreshing = false;
+let refreshSubscribers: Array<(token: string) => void> = [];
+let refreshFailSubscribers: Array<(err: unknown) => void> = [];
+
+function onRefreshSuccess(token: string) {
+  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers = [];
+  refreshFailSubscribers = [];
+}
+
+function onRefreshFail(err: unknown) {
+  refreshFailSubscribers.forEach((cb) => cb(err));
+  refreshSubscribers = [];
+  refreshFailSubscribers = [];
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -54,10 +73,35 @@ api.interceptors.response.use(
         url,
       });
     }
+
     if (error.response?.status === 401) {
+      const originalRequest = error.config;
+
+      // Skip 401 handling for auth endpoints (login, register, refresh)
+      const requestUrl = originalRequest?.url || '';
+      if (requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register') || requestUrl.includes('/auth/refresh')) {
+        return Promise.reject(error);
+      }
+
+      // If a refresh is already in progress, queue this request to retry after refresh completes
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          refreshSubscribers.push((newToken: string) => {
+            if (originalRequest) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              resolve(api.request(originalRequest));
+            } else {
+              reject(error);
+            }
+          });
+          refreshFailSubscribers.push(() => reject(error));
+        });
+      }
+
       // Try to refresh token
       const refreshToken = localStorage.getItem('remsana_refresh_token');
       if (refreshToken) {
+        isRefreshing = true;
         try {
           const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refresh_token: refreshToken,
@@ -67,25 +111,41 @@ api.interceptors.response.use(
           if (refresh_token) {
             localStorage.setItem('remsana_refresh_token', refresh_token);
           }
+          isRefreshing = false;
+          onRefreshSuccess(access_token);
+
           // Retry original request
-          if (error.config) {
-            error.config.headers.Authorization = `Bearer ${access_token}`;
-            return api.request(error.config);
+          if (originalRequest) {
+            originalRequest.headers.Authorization = `Bearer ${access_token}`;
+            return api.request(originalRequest);
           }
-        } catch (refreshError) {
-          // Refresh failed, clear tokens and redirect to login
-          localStorage.removeItem('remsana_auth_token');
-          localStorage.removeItem('remsana_refresh_token');
-          if (window.location.pathname !== '/login' && !window.location.pathname.startsWith('/insider')) {
-            window.location.href = '/login';
+        } catch (refreshError: any) {
+          isRefreshing = false;
+          onRefreshFail(refreshError);
+
+          const refreshStatus = refreshError?.response?.status;
+
+          // Only clear auth if the refresh endpoint explicitly rejected us (401/403).
+          // A 404 means the endpoint doesn't exist yet — the original token may still
+          // be valid for other endpoints, so don't nuke the session.
+          if (refreshStatus === 401 || refreshStatus === 403) {
+            console.warn('🔒 Refresh token rejected (', refreshStatus, '). Clearing auth.');
+            localStorage.removeItem('remsana_auth_token');
+            localStorage.removeItem('remsana_refresh_token');
+            localStorage.removeItem('remsana_auth_data');
+            localStorage.removeItem('remsana_user');
+
+            window.dispatchEvent(new Event('auth:expired'));
+          } else {
+            // 404, 500, network error, etc. — don't clear tokens, just log it.
+            console.warn('⚠️ Token refresh failed (status:', refreshStatus ?? 'network error', '). Keeping auth, error may be transient.');
           }
         }
       } else {
-        // No refresh token, redirect to login
-        localStorage.removeItem('remsana_auth_token');
-        if (window.location.pathname !== '/login' && !window.location.pathname.startsWith('/insider')) {
-          window.location.href = '/login';
-        }
+        // No refresh token — but don't nuke the session immediately.
+        // The original access token may still be valid for other endpoints.
+        // Only /dashboard/me might be returning 401 because the route doesn't exist yet.
+        console.warn('⚠️ No refresh token available. Original request returned 401 — endpoint may not exist.');
       }
     }
     return Promise.reject(error);

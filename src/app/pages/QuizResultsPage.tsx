@@ -1,13 +1,15 @@
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { CheckCircle2, XCircle, Download, RotateCcw, ArrowRight } from 'lucide-react';
-import { Card, CardContent, Button, Badge } from '../components/remsana';
+import { CheckCircle2, XCircle, RotateCcw, ArrowRight } from 'lucide-react';
+import { Card, CardContent, Button } from '../components/remsana';
+import { markLessonComplete } from '../api/learningApi';
 
 interface QuizResult {
   score: number;
   totalQuestions: number;
   correctAnswers: number;
+  passed?: boolean;
   answers: Record<string, string>;
-  questions: any[];
+  questions: Array<{ id: string; question: string; correctAnswer: string }>;
   timeSpent: number;
 }
 
@@ -32,9 +34,10 @@ export default function QuizResultsPage() {
     );
   }
 
-  const { score, totalQuestions, correctAnswers, timeSpent } = result;
-  const passed = score >= 70;
-  const performanceLabel = score >= 90 ? 'EXCELLENT!' : score >= 80 ? 'GREAT!' : score >= 70 ? 'GOOD!' : 'NEEDS IMPROVEMENT';
+  const { score, totalQuestions, correctAnswers, passed, timeSpent } = result;
+  const passedFinal = passed ?? score >= 70;
+  const performanceLabel =
+    score >= 90 ? 'EXCELLENT!' : score >= 80 ? 'GREAT!' : score >= 70 ? 'GOOD!' : 'NEEDS IMPROVEMENT';
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -42,11 +45,20 @@ export default function QuizResultsPage() {
     return `${mins}m ${secs}s`;
   };
 
-  const averageTimePerQuestion = Math.round(timeSpent / totalQuestions);
+  const averageTimePerQuestion = totalQuestions > 0 ? Math.round(timeSpent / totalQuestions) : 0;
+
+  const correctQuestions = result.questions.filter((q) => result.answers[q.id] === q.correctAnswer);
+  const incorrectQuestions = result.questions.filter((q) => result.answers[q.id] !== q.correctAnswer);
+
+  const handleMarkComplete = () => {
+    if (lessonId && passedFinal) {
+      markLessonComplete(lessonId);
+    }
+    navigate('/learning');
+  };
 
   return (
     <div className="min-h-screen bg-[#f3f0fa]">
-      {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <button
@@ -58,38 +70,25 @@ export default function QuizResultsPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        {/* Score Display */}
         <Card className="mb-6">
           <CardContent className="p-8 text-center">
             <div className="mb-4">
-              <h1 className="text-[32px] font-semibold text-[#1F2121] mb-2">
-                ✅ Quiz Completed!
-              </h1>
+              <h1 className="text-[32px] font-semibold text-[#1F2121] mb-2">✅ Quiz Completed!</h1>
             </div>
             <div className="mb-6">
-              <div className="text-[64px] font-bold text-[#1C1C8B] mb-2">
-                ⭐ {score}%
-              </div>
-              <div className="text-[20px] font-semibold text-[#1F2121] mb-2">
-                {performanceLabel}
-              </div>
-              {passed && (
-                <div className="text-[14px] text-[#218D8D] font-medium">
-                  Congratulations! You passed
-                </div>
+              <div className="text-[64px] font-bold text-[#1C1C8B] mb-2">⭐ {score}%</div>
+              <div className="text-[20px] font-semibold text-[#1F2121] mb-2">{performanceLabel}</div>
+              {passedFinal && (
+                <div className="text-[14px] text-[#218D8D] font-medium">Congratulations! You passed</div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Breakdown */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <h3 className="text-[18px] font-semibold text-[#1F2121] mb-4">
-              Breakdown:
-            </h3>
+            <h3 className="text-[18px] font-semibold text-[#1F2121] mb-4">Breakdown:</h3>
             <div className="space-y-2 text-[14px]">
               <div className="flex justify-between">
                 <span className="text-[#6B7C7C]">Questions answered correctly:</span>
@@ -111,55 +110,49 @@ export default function QuizResultsPage() {
           </CardContent>
         </Card>
 
-        {/* Feedback */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <Card>
             <CardContent className="p-6">
-              <h3 className="text-[16px] font-semibold text-[#1F2121] mb-4">
-                What You Did Well:
-              </h3>
+              <h3 className="text-[16px] font-semibold text-[#1F2121] mb-4">What You Did Well:</h3>
               <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-[#218D8D] flex-shrink-0 mt-0.5" />
-                  <span className="text-[14px] text-[#1F2121]">Psychological Pricing concepts</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-[#218D8D] flex-shrink-0 mt-0.5" />
-                  <span className="text-[14px] text-[#1F2121]">Market positioning strategies</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-[#218D8D] flex-shrink-0 mt-0.5" />
-                  <span className="text-[14px] text-[#1F2121]">Competitive analysis</span>
-                </div>
+                {correctQuestions.length > 0 ? (
+                  correctQuestions.slice(0, 3).map((q) => (
+                    <div key={q.id} className="flex items-start gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-[#218D8D] flex-shrink-0 mt-0.5" />
+                      <span className="text-[14px] text-[#1F2121] line-clamp-2">{q.question}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[14px] text-[#6B7C7C]">Review the lesson to improve.</p>
+                )}
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-6">
-              <h3 className="text-[16px] font-semibold text-[#1F2121] mb-4">
-                Areas for Review:
-              </h3>
+              <h3 className="text-[16px] font-semibold text-[#1F2121] mb-4">Areas for Review:</h3>
               <div className="space-y-2">
-                <div className="flex items-start gap-2">
-                  <XCircle className="w-5 h-5 text-[#A84B2F] flex-shrink-0 mt-0.5" />
-                  <span className="text-[14px] text-[#1F2121]">
-                    Perceived value techniques (1 question missed)
-                  </span>
-                </div>
+                {incorrectQuestions.length > 0 ? (
+                  incorrectQuestions.map((q) => (
+                    <div key={q.id} className="flex items-start gap-2">
+                      <XCircle className="w-5 h-5 text-[#A84B2F] flex-shrink-0 mt-0.5" />
+                      <span className="text-[14px] text-[#1F2121] line-clamp-2">{q.question}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[14px] text-[#218D8D]">All correct! Great job.</p>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Question Reviews */}
         <Card className="mb-6">
           <CardContent className="p-6">
-            <h3 className="text-[18px] font-semibold text-[#1F2121] mb-4">
-              Question Reviews:
-            </h3>
+            <h3 className="text-[18px] font-semibold text-[#1F2121] mb-4">Question Reviews:</h3>
             <div className="space-y-4">
-              {result.questions.map((q: any, idx: number) => {
+              {result.questions.map((q, idx) => {
                 const userAnswer = result.answers[q.id];
                 const isCorrect = userAnswer === q.correctAnswer;
 
@@ -173,24 +166,24 @@ export default function QuizResultsPage() {
                       )}
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-[12px] font-medium ${isCorrect ? 'text-[#218D8D]' : 'text-[#C01F2F]'}`}>
+                          <span
+                            className={`text-[12px] font-medium ${isCorrect ? 'text-[#218D8D]' : 'text-[#C01F2F]'}`}
+                          >
                             {isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
                           </span>
-                          <span className="text-[12px] text-[#6B7C7C]">
-                            Question {idx + 1}
-                          </span>
+                          <span className="text-[12px] text-[#6B7C7C]">Question {idx + 1}</span>
                         </div>
                         <p className="text-[14px] text-[#1F2121] mb-2">{q.question}</p>
                         <div className="text-[12px] space-y-1">
                           <p className="text-[#6B7C7C]">
-                            Your answer: <span className="font-medium text-[#1F2121]">{userAnswer?.toUpperCase()}</span>
-                            {!isCorrect && (
-                              <span className="text-[#C01F2F]"> (Wrong)</span>
-                            )}
+                            Your answer:{' '}
+                            <span className="font-medium text-[#1F2121]">{userAnswer?.toUpperCase() ?? '—'}</span>
+                            {!isCorrect && <span className="text-[#C01F2F]"> (Wrong)</span>}
                           </p>
                           {!isCorrect && (
                             <p className="text-[#6B7C7C]">
-                              Correct answer: <span className="font-medium text-[#218D8D]">{q.correctAnswer.toUpperCase()}</span>
+                              Correct answer:{' '}
+                              <span className="font-medium text-[#218D8D]">{q.correctAnswer.toUpperCase()}</span>
                             </p>
                           )}
                         </div>
@@ -203,31 +196,13 @@ export default function QuizResultsPage() {
           </CardContent>
         </Card>
 
-        {/* Recommended Review */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <h3 className="text-[18px] font-semibold text-[#1F2121] mb-4">
-              📚 Recommended Review:
-            </h3>
-            <div className="space-y-2 text-[14px] text-[#6B7C7C] mb-4">
-              <p>• Re-watch: 5:30-7:15 of lesson</p>
-              <p>• Resource: "Building Value Guide"</p>
-            </div>
-            <Button variant="secondary" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Actions */}
         <div className="space-y-3">
-          {passed && (
+          {passedFinal && (
             <Button
               variant="primary"
               size="lg"
               className="w-full"
-              onClick={() => navigate('/learning')}
+              onClick={handleMarkComplete}
             >
               ✅ Mark Lesson Complete
             </Button>

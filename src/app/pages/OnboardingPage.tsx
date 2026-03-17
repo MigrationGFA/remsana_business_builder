@@ -79,6 +79,7 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showSkipModal, setShowSkipModal] = useState(false);
+  const [showCompletedModal, setShowCompletedModal] = useState(false);
   const [formData, setFormData] = useState<BusinessData>({
     businessType: '',
     businessName: '',
@@ -94,6 +95,7 @@ export default function OnboardingPage() {
     goals: [],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [confirmed, setConfirmed] = useState(false);
 
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
@@ -109,7 +111,7 @@ export default function OnboardingPage() {
             setCurrentStep(res.current_step);
           }
           if (res.is_complete) {
-            navigate('/dashboard');
+            setShowCompletedModal(true);
           }
         })
         .catch(() => { /* keep defaults */ });
@@ -568,8 +570,6 @@ export default function OnboardingPage() {
 
   // Step 5: Review & Confirm
   const renderStep5 = () => {
-    const [confirmed, setConfirmed] = useState(false);
-
     return (
       <div>
         <h2 className="text-[24px] font-semibold text-[#1F2121] mb-2">
@@ -914,6 +914,40 @@ export default function OnboardingPage() {
             >
               <Clock className="w-4 h-4 mr-2" />
               Skip for Now
+            </Button>
+          </ModalFooter>
+        </div>
+      </Modal>
+
+      {/* Onboarding Already Completed Modal */}
+      <Modal
+        isOpen={showCompletedModal}
+        onClose={() => {
+          setShowCompletedModal(false);
+          navigate('/dashboard');
+        }}
+        title="Onboarding Complete"
+        size="sm"
+      >
+        <div className="py-4">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-full bg-[#218D8D]/10 flex items-center justify-center">
+              <Check className="w-5 h-5 text-[#218D8D]" />
+            </div>
+            <p className="text-[14px] text-[#1F2121]">
+              You've already completed your business profile setup. No further action is needed.
+            </p>
+          </div>
+          <ModalFooter>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => {
+                setShowCompletedModal(false);
+                navigate('/dashboard');
+              }}
+            >
+              Back to Dashboard
             </Button>
           </ModalFooter>
         </div>

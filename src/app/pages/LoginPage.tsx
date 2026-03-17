@@ -48,17 +48,59 @@ export default function LoginPage() {
       });
 
       const data = response.data;
-      console.log("data",data)
-      console.log('Login success - token:', data.access_token || null);
-      console.log('Login success - user:', data.user || null);
-      localStorage.setItem('remsana_auth_token', data.access_token || '');
+      if (import.meta.env.DEV) console.log('Login response:', data);
+
+      // Handle both flat { access_token } and wrapped { data: { access_token } } responses
+      const payload = data?.data ?? data;
+      const accessToken = payload?.access_token || payload?.token;
+      const refreshToken = payload?.refresh_token;
+      const userData = payload?.user;
+      const expiresIn = payload?.expires_in ?? 3600;
+
+      if (import.meta.env.DEV) {
+        console.log('Login parsed - token:', accessToken ? '✅ present' : '❌ missing');
+        console.log('Login parsed - user:', userData || null);
+      }
+
+      if (!accessToken) {
+        console.error('Login response structure:', JSON.stringify(data, null, 2));
+        setError('Login succeeded but no token was received. Please contact support.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Store auth token
+      localStorage.setItem('remsana_auth_token', accessToken);
+
+      // Store refresh token (needed for automatic token refresh on 401)
+      if (refreshToken) {
+        localStorage.setItem('remsana_refresh_token', refreshToken);
+      }
+
+      // Store user data
       localStorage.setItem(
         'remsana_user',
         JSON.stringify({
-          email: data.user?.email ?? formData.email,
-          name: data.user?.name ?? formData.email.split('@')[0],
+          email: userData?.email ?? formData.email,
+          full_name: userData?.full_name ?? userData?.name ?? formData.email.split('@')[0],
+          ...userData,
         })
       );
+
+      // Also store in AuthContext format for consistency
+      localStorage.setItem(
+        'remsana_auth_data',
+        JSON.stringify({
+          access_token: accessToken,
+          refresh_token: refreshToken ?? '',
+          expires_at: Date.now() + expiresIn * 1000,
+          user: userData ?? {
+            email: formData.email,
+            full_name: formData.email.split('@')[0],
+          },
+        })
+      );
+
       setIsLoading(false);
       navigate('/dashboard');
       return;

@@ -4,17 +4,12 @@
  * Wraps pages that require authentication.
  * Redirects to login if user is not authenticated.
  * 
- * Usage:
- * ```tsx
- * <Route path="/dashboard" element={
- *   <ProtectedRoute>
- *     <DashboardPage />
- *   </ProtectedRoute>
- * } />
- * ```
+ * Listens for 'auth:expired' events dispatched by the Axios 401 interceptor
+ * so that token expiry during a session redirects via React Router
+ * (instead of a hard window.location.href reload).
  */
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 interface ProtectedRouteProps {
@@ -24,34 +19,38 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const [authValid, setAuthValid] = useState(() => {
+    const token = localStorage.getItem('remsana_auth_token');
+    const user = localStorage.getItem('remsana_user');
+    return Boolean(token && user);
+  });
 
+  // Check on mount
   useEffect(() => {
     const token = localStorage.getItem('remsana_auth_token');
     const user = localStorage.getItem('remsana_user');
-    console.log('ProtectedRoute check - token:', token);
-    console.log('ProtectedRoute check - user:', user);
-    // Check if user is authenticated
-    
+
     if (!token || !user) {
       console.warn('🔒 ProtectedRoute: User not authenticated. Redirecting to login...');
-      
-      // Save the attempted URL to redirect back after login
       const returnUrl = location.pathname + location.search;
-      
-      // Redirect to login with return URL
-      navigate('/login', { 
-        replace: true,
-        state: { returnUrl } 
-      });
+      navigate('/login', { replace: true, state: { returnUrl } });
     }
-  }, [navigate, location]);
+  }, []); // only on mount — don't re-run on every location/navigate change
 
-  // Check authentication before rendering
-  const token = localStorage.getItem('remsana_auth_token');
-  const user = localStorage.getItem('remsana_user');
+  // Listen for auth:expired events from the Axios 401 interceptor
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      console.warn('🔒 ProtectedRoute: Auth expired (401 interceptor). Redirecting to login...');
+      setAuthValid(false);
+      const returnUrl = location.pathname + location.search;
+      navigate('/login', { replace: true, state: { returnUrl } });
+    };
 
-  if (!token || !user) {
-    // Don't render protected content while redirecting
+    window.addEventListener('auth:expired', handleAuthExpired);
+    return () => window.removeEventListener('auth:expired', handleAuthExpired);
+  }, [navigate, location.pathname, location.search]);
+
+  if (!authValid) {
     return null;
   }
 

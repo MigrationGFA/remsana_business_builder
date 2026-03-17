@@ -13,13 +13,18 @@ import type {
  */
 
 export async function getAdminQuickStats(): Promise<QuickStats | null> {
-  if (!hasBackend()) {
-    return null;
-  }
-
+  if (!hasBackend()) return null;
   try {
-    // This would come from /api/insider/admin/dashboard/summary or similar
-    // For now, return null to use mock fallback
+    const response = await api.get('/insider/admin/dashboard/summary');
+    const data = response.data;
+    if (data) {
+      return {
+        activeUsers: data.activeUsers ?? 0,
+        mrr: data.mrr ?? 0,
+        registrations: data.registrations ?? 0,
+        avgNps: data.avgNps ?? 34,
+      };
+    }
     return null;
   } catch (error) {
     console.error('Failed to fetch admin stats:', error);
@@ -96,6 +101,32 @@ export async function getAdminAuditLogs(limit: number = 100): Promise<AuditLogRo
     }));
   } catch (error) {
     console.error('Failed to fetch audit logs:', error);
+    return null;
+  }
+}
+
+export async function getAdminAlerts(): Promise<AlertItem[] | null> {
+  if (!hasBackend()) {
+    return null;
+  }
+
+  try {
+    const response = await api.get('/insider/admin/alerts');
+    const data = response.data?.data ?? response.data ?? [];
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data.map((item: any, index: number) => ({
+      id: String(item.id ?? index),
+      priority: Number(item.priority ?? 0),
+      title: item.title ?? item.message ?? 'Alert',
+      detail: item.detail ?? item.description ?? undefined,
+      actions: Array.isArray(item.actions) ? item.actions : [],
+    }));
+  } catch (error) {
+    console.error('Failed to fetch admin alerts:', error);
     return null;
   }
 }

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, Loader } from 'lucide-react';
-import { Card, CardContent, Button, Input, Alert, LinearProgress } from '../components/remsana';
+import { Card, CardContent, Button, Input, Alert } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { loansApi } from '../api/loansApi';
 
 const INCOME_RANGES = [
   { id: '50k', label: 'Under ₦50,000', value: 50000 },
@@ -53,21 +54,25 @@ export default function LoanEligibilityPage() {
 
     setIsChecking(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const result = await loansApi.checkEligibility({
+        nin: formData.nin,
+        monthlyIncome: formData.monthlyIncome,
+        employmentType: formData.employmentType,
+      });
       setIsChecking(false);
-      // Mock eligibility check - in production, this would call the API
-      const eligible = formData.monthlyIncome !== '50k'; // Reject if income too low
-      setIsEligible(eligible);
-      
-      if (eligible) {
+      setIsEligible(result.eligible);
+      if (result.eligible) {
         setEligibilityData({
-          maxLoanAmount: 50000,
-          minLoanAmount: 10000,
-          estimatedAprRange: '8-15%',
+          maxLoanAmount: result.maxLoanAmount,
+          minLoanAmount: result.minLoanAmount,
+          estimatedAprRange: result.estimatedAprRange,
         });
       }
-    }, 2000);
+    } catch (err) {
+      setIsChecking(false);
+      setIsEligible(false);
+    }
   };
 
   const handleContinueToOffers = () => {

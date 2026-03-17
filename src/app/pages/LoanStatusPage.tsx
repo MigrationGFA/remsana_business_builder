@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Clock, Loader, TrendingUp, Calendar } from 'lucide-react';
+import { CheckCircle2, Loader } from 'lucide-react';
 import { Card, CardContent, Button, Badge, LinearProgress } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { loansApi } from '../api/loansApi';
 
 type LoanStatus = 'pending' | 'underwriting' | 'approved' | 'disbursed' | 'active';
 
@@ -27,70 +28,23 @@ export default function LoanStatusPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching loan application status
-    setTimeout(() => {
-      const mockApplication: LoanApplication = {
-        applicationId: 'app_lendsqr_456',
-        status: 'underwriting',
-        lender: 'Lendsqr',
-        loanAmount: 25000,
-        apr: 8.5,
-        monthlyPayment: 2150,
-        termMonths: 12,
-        events: [
-          {
-            timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-            event: 'application_submitted',
-            description: 'Loan application submitted to Lendsqr',
-          },
-          {
-            timestamp: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-            event: 'underwriting_started',
-            description: 'Underwriting in progress',
-          },
-        ],
-      };
-      setApplication(mockApplication);
-      setIsLoading(false);
-
-      // Simulate status updates
-      const interval = setInterval(() => {
-        setApplication((prev) => {
-          if (!prev) return prev;
-          if (prev.status === 'underwriting') {
-            return {
-              ...prev,
-              status: 'approved',
-              events: [
-                ...prev.events,
-                {
-                  timestamp: new Date().toISOString(),
-                  event: 'loan_approved',
-                  description: 'Loan approved by Lendsqr',
-                },
-              ],
-            };
-          }
-          if (prev.status === 'approved') {
-            return {
-              ...prev,
-              status: 'disbursed',
-              events: [
-                ...prev.events,
-                {
-                  timestamp: new Date().toISOString(),
-                  event: 'loan_disbursed',
-                  description: '₦25,000 disbursed to Remsana. Registration starting.',
-                },
-              ],
-            };
-          }
-          return prev;
-        });
-      }, 10000); // Update every 10 seconds for demo
-
-      return () => clearInterval(interval);
-    }, 1000);
+    loansApi.getMyApplication()
+      .then((app) => {
+        if (app) {
+          setApplication({
+            applicationId: app.applicationId,
+            status: app.status as LoanStatus,
+            lender: app.lender,
+            loanAmount: app.loanAmount,
+            apr: app.apr,
+            monthlyPayment: app.monthlyPayment,
+            termMonths: app.termMonths,
+            events: app.events,
+          });
+        }
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
   }, []);
 
   const getStatusColor = (status: LoanStatus) => {

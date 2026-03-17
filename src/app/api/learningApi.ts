@@ -205,3 +205,16 @@ export async function submitQuizAttempt(
     return null;
   }
 }
+
+/**
+ * Mark lesson as completed (e.g. after passing quiz)
+ */
+export async function markLessonComplete(lessonId: string): Promise<void> {
+  if (!hasBackend()) return;
+
+  try {
+    await api.post(`/learning/lessons/${lessonId}/complete`);
+  } catch (error) {
+    console.error('Failed to mark lesson complete:', error);
+  }
+}
