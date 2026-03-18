@@ -14,7 +14,7 @@ export default function SplashScreen() {
         if (prev >= 100) {
           clearInterval(interval);
           // Navigate to login after splash
-          setTimeout(() => navigate('/login'), 500);
+          setTimeout(() => navigate('/landing'), 500);
           return 100;
         }
         return prev + 10;

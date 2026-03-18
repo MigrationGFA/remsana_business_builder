@@ -30,6 +30,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage.tsx';
 import ResetPasswordPage from './pages/ResetPasswordPage.tsx';
 import MfaChallengePage from './pages/MfaChallengePage.tsx';
 import MfaSetupPage from './pages/MfaSetupPage.tsx';
+import LandingPage from './pages/LandingPage.tsx';
 
 /**
  * Main App Component
@@ -49,6 +50,7 @@ function App() {
           <Routes>
             {/* Public routes - no authentication required */}
             <Route path="/" element={<SplashScreen />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
