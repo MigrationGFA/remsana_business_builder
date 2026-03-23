@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import './LandingPage.css';
 
 // SVG Icons for socials and arrows
@@ -38,9 +39,39 @@ const LayersIcon = () => (
 const LandingPage = () => {
   const navigate = useNavigate();
 
+  // Smooth scroll function
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-in');
+        }
+      });
+    }, observerOptions);
+
+    // Observe all animated sections
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach(el => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="landing-page-wrapper">
-      <div className="hero-section">
+      <div className="hero-section" id="hero">
         <div className="hero-accent"></div>
 
         {/* Background Image & Overlay */}
@@ -55,16 +86,16 @@ const LandingPage = () => {
           </Link>
 
           <div className="hero-nav-links">
-            <Link to="/" className="active">Home</Link>
-            <Link to="#about">About Us</Link>
-            <Link to="#services">Services</Link>
-            <a href="#blog">Blog</a>
-            <Link to="#contact">Contact</Link>
+            <a onClick={() => scrollToSection('hero')} className="active" style={{cursor: 'pointer'}}>Home</a>
+            <a onClick={() => scrollToSection('journey')} style={{cursor: 'pointer'}}>About Us</a>
+            <a onClick={() => scrollToSection('business-needs')} style={{cursor: 'pointer'}}>Services</a>
+            <a onClick={() => scrollToSection('blog')} style={{cursor: 'pointer'}}>Blog</a>
+            <a onClick={() => scrollToSection('cta')} style={{cursor: 'pointer'}}>Contact</a>
           </div>
 
           <div className="hero-nav-actions">
             <button className="btn-signin" onClick={() => navigate('/login')}>Sign in</button>
-            <button className="btn-signup" onClick={() => navigate('/register')}>Sign up</button>
+            <button className="btn-signup" onClick={() => navigate('/signup')}>Sign up</button>
           </div>
         </nav>
 
@@ -84,12 +115,12 @@ const LandingPage = () => {
             </p>
 
             <div className="hero-actions-row">
-              <a href="#register" className="btn-get-started">
+              <a href="/signup" className="btn-get-started">
                 Get Started Free
               </a>
-              <a href="#demo" className="btn-watch-demo">
+              {/* <a href="#demo" className="btn-watch-demo">
                 <PlayIcon /> Watch Demo
-              </a>
+              </a> */}
             </div>
 
             <div className="hero-stats">
@@ -114,7 +145,7 @@ const LandingPage = () => {
       </div>
 
       {/* Built for Real Impact Section */}
-      <section className="impact-section" id="impact">
+      <section className="impact-section animate-on-scroll" id="impact">
         <div className="impact-container">
           <div className="impact-header">
             <span className="section-badge">Impact</span>
@@ -180,7 +211,7 @@ const LandingPage = () => {
 
 
       {/* Everything Your Business Needs Section */}
-      <section className="business-needs-section" id="business-needs">
+      <section className="business-needs-section animate-on-scroll" id="business-needs">
         <div className="needs-header">
           <h2>Everything Your Business Needs to Succeed</h2>
           <p>One integrated platform that removes the barriers between you and business success.</p>
@@ -274,7 +305,7 @@ const LandingPage = () => {
       </section>
 
       {/* Your Journey from Idea to Impact Section (Zigzag Layout) */}
-      <section className="journey-zigzag-section" id="journey">
+      <section className="journey-zigzag-section animate-on-scroll" id="journey">
         <div className="section-container">
           <div className="journey-header">
             <span className="section-badge">How It Works</span>
@@ -382,7 +413,7 @@ const LandingPage = () => {
       </section>
 
       {/* Choose Your Growth Path Section */}
-      <section className="pricing-section" id="pricing">
+      <section className="pricing-section animate-on-scroll" id="pricing">
         <div className="section-container">
           <div className="pricing-header">
             <span className="section-badge">Pricing Plans</span>
@@ -466,7 +497,7 @@ const LandingPage = () => {
       </section>
 
       {/* Blog Section */}
-      <section className="blog-section" id="blog">
+      <section className="blog-section animate-on-scroll" id="blog">
         <div className="blog-container">
           <div className="blog-header">
             <span className="section-badge">Blog & Insights</span>
@@ -555,7 +586,7 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section" id="cta">
+      <section className="cta-section animate-on-scroll" id="cta">
         <div className="cta-container">
           <div className="cta-glow cta-glow-1"></div>
           <div className="cta-glow cta-glow-2"></div>

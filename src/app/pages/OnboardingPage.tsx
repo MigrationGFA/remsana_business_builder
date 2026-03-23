@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Check, Edit, X, Clock } from 'lucide-react';
 import { Button, Card, Input, Alert, Modal, ModalFooter } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
 import { getOnboardingProgress, saveOnboardingProgress, completeOnboarding, hasBackend } from '../api/onboardingApi';
+import { NIGERIA_STATES, getLGAsByState } from '../utils/nigeriaLGA';
 
 interface BusinessData {
   businessType: string;
@@ -146,6 +147,9 @@ export default function OnboardingPage() {
       }
       if (!formData.businessAddress || formData.businessAddress.length < 5) {
         newErrors.businessAddress = 'Business address is required';
+      }
+      if (!formData.state) {
+        newErrors.state = 'State is required';
       }
       if (!formData.lga) {
         newErrors.lga = 'Local Government Area is required';
@@ -384,22 +388,58 @@ export default function OnboardingPage() {
 
         <div>
           <label className="block text-[14px] font-medium text-[#1F2121] mb-2">
+            State *
+          </label>
+          <select
+            value={formData.state}
+            onChange={(e) => {
+              const newState = e.target.value;
+              updateField('state', newState);
+              // Reset LGA when state changes
+              if (formData.lga) {
+                updateField('lga', '');
+              }
+            }}
+            className="w-full h-[40px] px-3 rounded-[4px] border border-[#6B7C7C]/30 focus:border-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white"
+          >
+            <option value="">Select State</option>
+            {NIGERIA_STATES.map((state) => (
+              <option key={state.code} value={state.code}>
+                {state.name}
+              </option>
+            ))}
+          </select>
+          {errors.state && (
+            <p className="text-[12px] text-[#C01F2F] mt-1">{errors.state}</p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-[14px] font-medium text-[#1F2121] mb-2">
             Local Government Area (LGA) *
           </label>
           <select
             value={formData.lga}
             onChange={(e) => updateField('lga', e.target.value)}
-            className="w-full h-[40px] px-3 rounded-[4px] border border-[#6B7C7C]/30 focus:border-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white"
+            disabled={!formData.state}
+            className="w-full h-[40px] px-3 rounded-[4px] border border-[#6B7C7C]/30 focus:border-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
-            <option value="">Select LGA</option>
-            <option value="lagos-island">Lagos Island</option>
-            <option value="lagos-mainland">Lagos Mainland</option>
-            <option value="ikeja">Ikeja</option>
-            <option value="abuja-municipal">Abuja Municipal</option>
-            {/* Add more LGAs */}
+            <option value="">
+              {formData.state ? 'Select LGA' : 'Select a state first'}
+            </option>
+            {formData.state && getLGAsByState(formData.state).map((lga) => (
+              <option key={lga.value} value={lga.value}>
+                {lga.name}
+              </option>
+            ))}
           </select>
           {errors.lga && (
             <p className="text-[12px] text-[#C01F2F] mt-1">{errors.lga}</p>
+          )}
+          {!formData.state && (
+            <p className="text-[12px] text-[#6B7C7C] mt-1">
+              Please select a state to see available LGAs
+            </p>
           )}
         </div>
       </div>
