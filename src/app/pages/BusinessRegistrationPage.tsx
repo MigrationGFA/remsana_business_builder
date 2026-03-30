@@ -1,9 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Upload, File, X, CheckCircle2, CreditCard, Building2, Smartphone, Lock, CreditCard as CardIcon, TrendingUp, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Upload, File, X, CheckCircle2, CreditCard, Building2, Smartphone, TrendingUp, Clock } from 'lucide-react';
 import { Card, CardContent, Button, Input, Alert, LinearProgress, Modal, ModalFooter } from '../components/remsana';
 import { ToastContainer, useToast } from '../components/remsana/Toast';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import {
+  getCacRegistration,
+  createCacRegistration,
+  saveCacStep1,
+  saveCacStep2,
+  saveCacStep3,
+  saveCacStep4,
+  submitCacRegistration,
+  checkNameAvailability,
+  getApprovedObjects,
+  getCacRegistrationById,
+  hasBackend,
+} from '../api/cacApi';
+import type { ApprovedObject, CacProprietor } from '../api/cacApi';
 
 interface Document {
   id: string;
@@ -45,7 +59,6 @@ export default function BusinessRegistrationPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [showPaymentSuccessModal, setShowPaymentSuccessModal] = useState(false);
   const [transactionRef, setTransactionRef] = useState('');
-  const [showBankTransferModal, setShowBankTransferModal] = useState(false);
   const [showFilePreviewModal, setShowFilePreviewModal] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ name: string; type: string; file: File | null } | null>(null);
   const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '', name: '' });
@@ -62,9 +75,73 @@ export default function BusinessRegistrationPage() {
   const [companyObjectsText, setCompanyObjectsText] = useState('');
   const [authorizedShareCapital, setAuthorizedShareCapital] = useState('');
   const registrationFee = 25000;
+  const [regId, setRegId] = useState<string | null>(null);
+  const [nameAvailability, setNameAvailability] = useState<{ available: boolean; message?: string } | null>(null);
+  const [nameCheckLoading, setNameCheckLoading] = useState(false);
+  const [approvedObjects, setApprovedObjects] = useState<ApprovedObject[]>([]);
+
+  // Proprietor fields (CAC step 2)
+  const [proprietorFullName, setProprietorFullName] = useState('');
+  const [proprietorEmail, setProprietorEmail] = useState('');
+  const [proprietorPhone, setProprietorPhone] = useState('');
+  const [proprietorAddress, setProprietorAddress] = useState('');
+  const [proprietorDob, setProprietorDob] = useState('');
+  const [proprietorOccupation, setProprietorOccupation] = useState('');
+
+  // Address fields (CAC step 4)
+  const [registeredAddress, setRegisteredAddress] = useState('');
+  const [commencementDate, setCommencementDate] = useState('');
 
   const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
+
+  // Load existing registration from API on mount
+  useEffect(() => {
+    if (hasBackend()) {
+      getCacRegistration()
+        .then((reg) => {
+          if (reg) {
+            setRegId(reg.id);
+            if (reg.registration_type) setRegistrationType(reg.registration_type);
+            if (reg.current_step >= 1 && reg.current_step <= 5) setCurrentStep(reg.current_step);
+            if (reg.business_name) setProposedBusinessName(reg.business_name);
+            if (reg.business_name_alt) setProposedBusinessNameAlt(reg.business_name_alt);
+          }
+        })
+        .catch(() => { /* keep defaults */ });
+      // Load approved business objects from API
+      getApprovedObjects().then((objects) => {
+        if (objects.length > 0) setApprovedObjects(objects);
+      }).catch(() => {});
+    } else {
+      const saved = localStorage.getItem('remsana_business_registration_progress');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.currentStep) setCurrentStep(parsed.currentStep);
+          if (parsed.registrationType) setRegistrationType(parsed.registrationType);
+          if (parsed.paymentMethod) setPaymentMethod(parsed.paymentMethod);
+          if (parsed.paymentCompleted) setPaymentCompleted(parsed.paymentCompleted);
+        } catch (_) {}
+      }
+    }
+  }, []);
+
+  const handleCheckNameAvailability = async (name: string) => {
+    if (!hasBackend() || name.trim().length < 2) {
+      setNameAvailability(null);
+      return;
+    }
+    setNameCheckLoading(true);
+    try {
+      const result = await checkNameAvailability(name.trim());
+      setNameAvailability(result);
+    } catch {
+      setNameAvailability(null);
+    } finally {
+      setNameCheckLoading(false);
+    }
+  };
 
   const handleFileSelect = (docId: string, file: File) => {
     if (file.size > 5 * 1024 * 1024) {
@@ -115,7 +192,7 @@ export default function BusinessRegistrationPage() {
     );
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 1) {
       if (!registrationType) {
         setErrorMessage('Please select a registration type to continue');
@@ -128,6 +205,27 @@ export default function BusinessRegistrationPage() {
         setErrorMessage('Please upload all required documents before proceeding');
         setShowErrorModal(true);
         return;
+      }
+      // Create registration via API if we don't have one yet
+      if (hasBackend() && !regId && registrationType) {
+        try {
+          const reg = await createCacRegistration(registrationType);
+          setRegId(reg.id);
+          // Upload documents via step3
+          const docFiles: Record<string, File> = {};
+          for (const doc of documents) {
+            if (doc.file && (doc.id === 'national-id' || doc.id === 'proof-of-address' || doc.id === 'passport-photo')) {
+              docFiles[doc.id] = doc.file;
+            }
+          }
+          if (Object.keys(docFiles).length > 0) {
+            await saveCacStep3(reg.id, docFiles as any);
+          }
+        } catch (err: any) {
+          setErrorMessage(err?.response?.data?.error || err?.message || 'Failed to create registration');
+          setShowErrorModal(true);
+          return;
+        }
       }
     }
     if (currentStep === 2) {
@@ -171,6 +269,58 @@ export default function BusinessRegistrationPage() {
           return;
         }
       }
+
+      // Validate proprietor details
+      if (!proprietorFullName.trim()) {
+        setErrorMessage('Please enter the proprietor/director full name.');
+        setShowErrorModal(true);
+        return;
+      }
+      if (!proprietorEmail.trim()) {
+        setErrorMessage('Please enter the proprietor/director email.');
+        setShowErrorModal(true);
+        return;
+      }
+      if (!proprietorPhone.trim()) {
+        setErrorMessage('Please enter the proprietor/director phone number.');
+        setShowErrorModal(true);
+        return;
+      }
+
+      // Validate address fields
+      if (!registeredAddress.trim()) {
+        setErrorMessage('Please enter the registered business address.');
+        setShowErrorModal(true);
+        return;
+      }
+      if (!commencementDate) {
+        setErrorMessage('Please select the business commencement date.');
+        setShowErrorModal(true);
+        return;
+      }
+
+      // Save step 2 (proprietors) and step 4 (address) via API
+      if (hasBackend() && regId) {
+        try {
+          const proprietors: CacProprietor[] = [{
+            fullName: proprietorFullName.trim(),
+            email: proprietorEmail.trim(),
+            phone: proprietorPhone.trim(),
+            address: proprietorAddress.trim(),
+            dob: proprietorDob,
+            occupation: proprietorOccupation.trim(),
+          }];
+          await saveCacStep2(regId, proprietors);
+          await saveCacStep4(regId, {
+            registeredAddress: registeredAddress.trim(),
+            commencementDate,
+          });
+        } catch (err: any) {
+          setErrorMessage(err?.response?.data?.error || err?.message || 'Failed to save proprietor/address details');
+          setShowErrorModal(true);
+          return;
+        }
+      }
     }
     if (currentStep === 3) {
       // On payment step, trigger payment handler instead of moving to next step
@@ -196,24 +346,36 @@ export default function BusinessRegistrationPage() {
     }
   };
 
-  const saveProgress = () => {
-    localStorage.setItem('remsana_business_registration_progress', JSON.stringify({
-      currentStep,
-      registrationType,
-      documents: documents.map(d => ({ id: d.id, uploaded: d.uploaded })),
-      paymentMethod,
-      paymentCompleted,
-      savedAt: new Date().toISOString(),
-    }));
+  const saveProgress = async () => {
+    if (hasBackend() && regId) {
+      try {
+        if (registrationType === 'business_name' && proposedBusinessName) {
+          await saveCacStep1(regId, {
+            businessName: proposedBusinessName,
+            businessNameAlt: proposedBusinessNameAlt,
+            businessObjects: [businessObject1, businessObject2, businessObject3].filter(Boolean),
+          });
+        }
+      } catch (_) { /* ignore save errors */ }
+    } else {
+      localStorage.setItem('remsana_business_registration_progress', JSON.stringify({
+        currentStep,
+        registrationType,
+        documents: documents.map(d => ({ id: d.id, uploaded: d.uploaded })),
+        paymentMethod,
+        paymentCompleted,
+        savedAt: new Date().toISOString(),
+      }));
+    }
   };
 
-  const handleExit = () => {
-    saveProgress();
+  const handleExit = async () => {
+    await saveProgress();
     setShowExitModal(true);
   };
 
-  const handleConfirmExit = () => {
-    saveProgress();
+  const handleConfirmExit = async () => {
+    await saveProgress();
     setShowExitModal(false);
     navigate('/dashboard');
   };
@@ -222,8 +384,8 @@ export default function BusinessRegistrationPage() {
     setShowSkipModal(true);
   };
 
-  const handleConfirmSkip = () => {
-    saveProgress();
+  const handleConfirmSkip = async () => {
+    await saveProgress();
     setShowSkipModal(false);
     navigate('/dashboard');
   };
@@ -292,10 +454,24 @@ export default function BusinessRegistrationPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      if (hasBackend() && regId) {
+        await submitCacRegistration(regId);
+        // Refresh registration to get updated status
+        const updated = await getCacRegistrationById(regId);
+        if (updated) {
+          setRegId(updated.id);
+        }
+      } else {
+        localStorage.removeItem('remsana_business_registration_progress');
+      }
       navigate('/dashboard');
-    }, 2000);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.error || err?.message || 'Failed to submit registration');
+      setShowErrorModal(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Step 1: Registration Type & Document Upload
@@ -477,11 +653,20 @@ export default function BusinessRegistrationPage() {
                 placeholder="e.g. Remsana Foods & Trading"
                 value={proposedBusinessName}
                 onChange={(e) => setProposedBusinessName(e.target.value)}
+                onBlur={() => handleCheckNameAvailability(proposedBusinessName)}
                 maxLength={100}
               />
-              <p className="text-[11px] text-[#6B7C7C] mt-1">
-                2–100 characters. No special characters except spaces, hyphens and apostrophes.
-              </p>
+              {nameCheckLoading && <p className="text-[11px] text-[#6B7C7C] mt-1">Checking availability...</p>}
+              {nameAvailability && (
+                <p className={`text-[11px] mt-1 ${nameAvailability.available ? 'text-[#218D8D]' : 'text-[#C01F2F]'}`}>
+                  {nameAvailability.available ? '✓ Name is available' : `✗ ${nameAvailability.message || 'Name is not available'}`}
+                </p>
+              )}
+              {!nameCheckLoading && !nameAvailability && (
+                <p className="text-[11px] text-[#6B7C7C] mt-1">
+                  2–100 characters. No special characters except spaces, hyphens and apostrophes.
+                </p>
+              )}
             </div>
 
             <div>
@@ -510,11 +695,18 @@ export default function BusinessRegistrationPage() {
                 className="w-full h-[40px] px-3 rounded-[4px] border border-[#6B7C7C]/30 focus:border-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white text-[14px]"
               >
                 <option value="">Select primary business object</option>
-                <option value="Trading in Agricultural Products">Trading in Agricultural Products</option>
-                <option value="Retail Clothing">Retail Clothing</option>
-                <option value="Consulting Services">Consulting Services</option>
-                <option value="Food & Beverage Services">Food & Beverage Services</option>
-                <option value="Technology & IT Services">Technology & IT Services</option>
+                {approvedObjects.length > 0
+                  ? approvedObjects.map((obj) => (
+                      <option key={obj.id} value={obj.name}>{obj.name}</option>
+                    ))
+                  : <>
+                      <option value="Trading in Agricultural Products">Trading in Agricultural Products</option>
+                      <option value="Retail Clothing">Retail Clothing</option>
+                      <option value="Consulting Services">Consulting Services</option>
+                      <option value="Food & Beverage Services">Food & Beverage Services</option>
+                      <option value="Technology & IT Services">Technology & IT Services</option>
+                    </>
+                }
               </select>
               <p className="text-[11px] text-[#6B7C7C] mt-1">
                 Primary object must be selected. Additional objects are optional (maximum 3).
@@ -641,6 +833,117 @@ export default function BusinessRegistrationPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Proprietor/Director Details (CAC Step 2) */}
+      {registrationType && (
+        <div className="mt-8 pt-6 border-t border-[#6B7C7C]/20">
+          <h3 className="text-[18px] font-semibold text-[#1F2121] mb-2">
+            {registrationType === 'business_name' ? 'Proprietor Details' : 'Director Details'}
+          </h3>
+          <p className="text-[14px] text-[#6B7C7C] mb-4">
+            Provide the details of the primary {registrationType === 'business_name' ? 'proprietor' : 'director'} for this registration.
+          </p>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Full Name *</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. John Adebayo Okafor"
+                  value={proprietorFullName}
+                  onChange={(e) => setProprietorFullName(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
+              <div>
+                <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Email Address *</label>
+                <Input
+                  type="email"
+                  placeholder="e.g. john@example.com"
+                  value={proprietorEmail}
+                  onChange={(e) => setProprietorEmail(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Phone Number *</label>
+                <Input
+                  type="tel"
+                  placeholder="e.g. 08012345678"
+                  value={proprietorPhone}
+                  onChange={(e) => setProprietorPhone(e.target.value)}
+                  maxLength={15}
+                />
+              </div>
+              <div>
+                <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Occupation</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Entrepreneur"
+                  value={proprietorOccupation}
+                  onChange={(e) => setProprietorOccupation(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Residential Address</label>
+              <Input
+                type="text"
+                placeholder="e.g. 15 Marina Road, Lagos Island, Lagos"
+                value={proprietorAddress}
+                onChange={(e) => setProprietorAddress(e.target.value)}
+                maxLength={200}
+              />
+            </div>
+            <div>
+              <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Date of Birth</label>
+              <Input
+                type="date"
+                value={proprietorDob}
+                onChange={(e) => setProprietorDob(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Business Address (CAC Step 4) */}
+      {registrationType && (
+        <div className="mt-8 pt-6 border-t border-[#6B7C7C]/20">
+          <h3 className="text-[18px] font-semibold text-[#1F2121] mb-2">
+            Registered Business Address
+          </h3>
+          <p className="text-[14px] text-[#6B7C7C] mb-4">
+            This is the official address that will appear on your CAC certificate.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Business Address *</label>
+              <Input
+                type="text"
+                placeholder="e.g. Shop 5, Block A, Trade Fair Complex, Lagos"
+                value={registeredAddress}
+                onChange={(e) => setRegisteredAddress(e.target.value)}
+                maxLength={300}
+              />
+              <p className="text-[11px] text-[#6B7C7C] mt-1">Full street address including city and state.</p>
+            </div>
+            <div>
+              <label className="block text-[14px] font-medium text-[#1F2121] mb-2">Business Commencement Date *</label>
+              <Input
+                type="date"
+                value={commencementDate}
+                onChange={(e) => setCommencementDate(e.target.value)}
+              />
+              <p className="text-[11px] text-[#6B7C7C] mt-1">The date you started or plan to start business operations.</p>
+            </div>
+          </div>
+        </div>
       )}
 
       {!registrationType && (

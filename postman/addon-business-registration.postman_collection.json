@@ -1,0 +1,174 @@
+{
+  "info": {
+    "name": "addon-business-registration",
+    "description": "Postman tests for addon-business-registration: CAC Business Registration (SME) endpoints. Requires SME Bearer token. Set regId after Create.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "core_base", "value": "http://localhost:8080"},
+    {"key": "sme_access_token", "value": ""},
+    {"key": "regId", "value": ""}
+  ],
+  "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{sme_access_token}}"}]},
+  "item": [
+    {
+      "name": "Get My Registration",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/cac/business-name/me",
+        "description": "Get current user's CAC registration if any.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Check Availability",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/cac/business-name/check-availability?name=MyBusinessName",
+        "description": "Check if business name is available. Query param: name.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));", "pm.test('Has available field', () => pm.expect(pm.response.json()).to.have.property('available'));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Get Approved Objects",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/cac/business-name/approved-objects",
+        "description": "Get list of approved business objects for dropdown.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Create Registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"registrationType\": \"business_name\"\n}"
+        },
+        "url": "{{core_base}}/api/v1/cac/business-name/create",
+        "description": "Create new CAC registration. registrationType: business_name | company_incorporation. Returns registration_id. Set regId from response.",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 2xx', () => pm.response.to.have.status(201));",
+                "pm.test('Response has registration_id', () => {",
+                "  const j = pm.response.json();",
+                "  const id = j.registration_id || j.data?.registration_id || j.id;",
+                "  pm.expect(id).to.be.a('string');",
+                "  if (id) pm.collectionVariables.set('regId', id);",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Registration",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/cac/business-name/{{regId}}",
+        "description": "Get registration by ID. Set regId in vars.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Step 1 - Business Info",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"businessName\": \"My Amazing Business\",\n  \"businessNameAlt\": \"My Business Alternative\",\n  \"businessObjects\": [\"Trading in general merchandise\", \"Retail of consumer goods\"]\n}"
+        },
+        "url": "{{core_base}}/api/v1/cac/business-name/{{regId}}/step1",
+        "description": "Step 1: Business name and objects. For company: companyName, companyNameAlt, companyObjectsText, authorizedShareCapital.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Step 2 - Proprietors",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"proprietors\": [\n    {\n      \"id\": \"prop_1\",\n      \"fullName\": \"Jane Doe\",\n      \"email\": \"jane@example.com\",\n      \"phone\": \"+2348012345678\",\n      \"address\": \"123 Main St\",\n      \"dob\": \"1990-01-15\",\n      \"occupation\": \"Business Owner\"\n    }\n  ]\n}"
+        },
+        "url": "{{core_base}}/api/v1/cac/business-name/{{regId}}/step2",
+        "description": "Step 2: Proprietors array. Each: id, fullName, email, phone, address, dob, occupation.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Step 3 - Documents",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {"key": "national-id", "type": "file", "src": "", "description": "National ID document"},
+            {"key": "proof-of-address", "type": "file", "src": ""},
+            {"key": "passport-photo", "type": "file", "src": ""}
+          ]
+        },
+        "url": "{{core_base}}/api/v1/cac/business-name/{{regId}}/step3",
+        "description": "Step 3: Upload documents. form-data keys: national-id, proof-of-address, business-plan, bank-statement, passport-photo. Max 5MB each.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Step 4 - Address",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"registeredAddress\": \"123 Main Street, Lagos Island, Lagos\",\n  \"commencementDate\": \"2026-01-01\"\n}"
+        },
+        "url": "{{core_base}}/api/v1/cac/business-name/{{regId}}/step4",
+        "description": "Step 4: Registered address and commencement date.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Submit Registration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        },
+        "url": "{{core_base}}/api/v1/cac/business-name/{{regId}}/submit",
+        "description": "Submit registration to CAC. Requires all steps completed.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    }
+  ]
+}

@@ -31,6 +31,9 @@ import ResetPasswordPage from './pages/ResetPasswordPage.tsx';
 import MfaChallengePage from './pages/MfaChallengePage.tsx';
 import MfaSetupPage from './pages/MfaSetupPage.tsx';
 import LandingPage from './pages/LandingPage.tsx';
+import SupportPage from './pages/SupportPage';
+import ChatPage from './pages/ChatPage';
+import ProfilePage from './pages/ProfilePage';
 
 /**
  * Main App Component
@@ -66,6 +69,9 @@ function App() {
             <Route path="/quiz-results/:lessonId" element={<ProtectedRoute><QuizResultsPage /></ProtectedRoute>} />
             <Route path="/business-registration" element={<ProtectedRoute><BusinessRegistrationPage /></ProtectedRoute>} />
             <Route path="/mfa-setup" element={<ProtectedRoute><MfaSetupPage /></ProtectedRoute>} />
+            <Route path="/support" element={<ProtectedRoute><SupportPage /></ProtectedRoute>} />
+            <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             
             {/* Loan flow - all protected */}
             <Route path="/loan/eligibility" element={<ProtectedRoute><LoanEligibilityPage /></ProtectedRoute>} />

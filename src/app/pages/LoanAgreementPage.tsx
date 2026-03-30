@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, FileText, PenTool } from 'lucide-react';
 import { Card, CardContent, Button, Checkbox, Alert, Modal, ModalFooter } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { loansApi } from '../api/loansApi';
+import { hasBackend } from '../api/onboardingApi';
 
 interface LoanOffer {
   offerId: string;
@@ -48,17 +50,26 @@ export default function LoanAgreementPage() {
   };
 
   const handleSubmit = async () => {
-    if (!signature || !Object.values(consents).every((v) => v)) {
+    if (!signature || !Object.values(consents).every((v) => v) || !offer) {
       return;
     }
 
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      if (hasBackend()) {
+        const eligibility = JSON.parse(localStorage.getItem('loan_eligibility') || '{}');
+        await loansApi.apply({
+          offerId: offer.offerId,
+          nin: eligibility.nin,
+          monthlyIncome: eligibility.monthlyIncome,
+          employmentType: eligibility.employmentType,
+        });
+      }
       localStorage.setItem('loan_agreement_signed', 'true');
       navigate('/loan/debit-setup');
-    }, 2000);
+    } catch {
+      setIsSubmitting(false);
+    }
   };
 
   if (!offer) {

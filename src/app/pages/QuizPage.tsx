@@ -75,6 +75,12 @@ export default function QuizPage() {
   };
 
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const attemptsRemaining = lesson?.quiz?.attempts_remaining;
+  const maxAttempts = lesson?.quiz?.max_attempts;
+  const attemptsUsed = lesson?.quiz?.attempts_used ?? 0;
+  const noAttemptsLeft = attemptsRemaining !== undefined && attemptsRemaining <= 0;
 
   const handleSubmit = async () => {
     if (submitted) return;
@@ -82,9 +88,11 @@ export default function QuizPage() {
     if (!quizId || !lessonId) return;
 
     setSubmitted(true);
+    setSubmitError(null);
     const timeSpent = Math.round((Date.now() - startTime) / 1000);
 
-    const result = await submitQuizAttempt(quizId, answers, timeSpent);
+    try {
+      const result = await submitQuizAttempt(quizId, answers, timeSpent);
 
     const questionsForReview = questions.map((q) => {
       const correctOpt = (q.options ?? []).find((o) => o.is_correct);
@@ -119,6 +127,10 @@ export default function QuizPage() {
           timeSpent,
         },
       });
+    }
+    } catch (err: any) {
+      setSubmitted(false);
+      setSubmitError(err?.message || 'Failed to submit quiz. Please try again.');
     }
   };
 
@@ -204,6 +216,21 @@ export default function QuizPage() {
           <p className="text-[14px] text-[#6B7C7C] mb-4">
             Day {lesson.day_number}: {lesson.title}
           </p>
+          {maxAttempts != null && (
+            <p className={`text-[13px] mb-3 ${
+              noAttemptsLeft ? 'text-red-600 font-medium' : 'text-[#6B7C7C]'
+            }`}>
+              {noAttemptsLeft
+                ? `No attempts remaining (${attemptsUsed}/${maxAttempts} used)`
+                : `Attempts: ${attemptsUsed}/${maxAttempts} used — ${attemptsRemaining} remaining`
+              }
+            </p>
+          )}
+          {submitError && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-[8px] text-[13px] text-red-700">
+              {submitError}
+            </div>
+          )}
           <div className="mb-2">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[14px] text-[#6B7C7C]">
@@ -290,7 +317,7 @@ export default function QuizPage() {
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button variant="primary" size="md" onClick={handleSubmit}>
+            <Button variant="primary" size="md" onClick={handleSubmit} disabled={noAttemptsLeft}>
               Submit Quiz
             </Button>
           )}

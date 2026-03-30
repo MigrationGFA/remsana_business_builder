@@ -1,0 +1,202 @@
+{
+  "info": {
+    "name": "addon-core-api",
+    "description": "Postman tests for addon/remsana-core-api: Admin (transactions, videos, system health), Analyst (cohorts, export PDF). Requires insider_access_token (ADMIN for Admin, ANALYST for Analyst).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "core_base", "value": "http://localhost:8080"},
+    {"key": "insider_access_token", "value": ""},
+    {"key": "txnId", "value": ""},
+    {"key": "videoId", "value": ""}
+  ],
+  "auth": {"type": "noauth"},
+  "item": [
+    {
+      "name": "Admin - Transactions (TransactionModel)",
+      "item": [
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}],
+            "url": "{{core_base}}/api/insider/admin/transactions?page=1&limit=50&status=completed",
+            "description": "List transactions. Optional: status, page, limit. From addon TransactionModel.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Status is 2xx', () => pm.response.to.have.status(200));",
+                    "const j = pm.response.json();",
+                    "const rows = j.data || j.transactions || [];",
+                    "if (rows[0]?.id) pm.collectionVariables.set('txnId', rows[0].id);"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Refund Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Refund reason\"\n}"
+            },
+            "url": "{{core_base}}/api/insider/admin/transactions/{{txnId}}/refund",
+            "description": "Refund transaction. Set txnId in vars.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Override Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Override reason\"\n}"
+            },
+            "url": "{{core_base}}/api/insider/admin/transactions/{{txnId}}/override",
+            "description": "Override transaction.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Content Videos (ContentVideoModel)",
+      "item": [
+        {
+          "name": "List Videos",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}],
+            "url": "{{core_base}}/api/insider/admin/content/videos?page=1&limit=50&status=published",
+            "description": "List videos. Optional: status, page, limit. From addon ContentVideoModel.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Status is 2xx', () => pm.response.to.have.status(200));",
+                    "const j = pm.response.json();",
+                    "const rows = j.data || j.videos || [];",
+                    "if (rows[0]?.id) pm.collectionVariables.set('videoId', rows[0].id);"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Publish Video",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Publish reason\"\n}"
+            },
+            "url": "{{core_base}}/api/insider/admin/content/videos/{{videoId}}/publish",
+            "description": "Publish video. Set videoId in vars.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Unpublish Video",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Unpublish reason\"\n}"
+            },
+            "url": "{{core_base}}/api/insider/admin/content/videos/{{videoId}}/unpublish",
+            "description": "Unpublish video.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Update Video",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"New Title\",\n  \"description\": \"New description\",\n  \"reason\": \"Update reason\"\n}"
+            },
+            "url": "{{core_base}}/api/insider/admin/content/videos/{{videoId}}",
+            "description": "Update video metadata.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - System Health",
+      "item": [
+        {
+          "name": "System Health",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}],
+            "url": "{{core_base}}/api/insider/admin/system/health",
+            "description": "Get system health. From addon Admin patch.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analyst - Cohorts (AnalyticsDailyUserCohortModel)",
+      "item": [
+        {
+          "name": "Get Cohorts",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}],
+            "url": "{{core_base}}/api/insider/analyst/cohorts?page=1&limit=50&signup_date=2026-01",
+            "description": "Get cohort data. Optional: signup_date, page, limit. From addon AnalyticsDailyUserCohortModel.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analyst - Export PDF",
+      "item": [
+        {
+          "name": "Export PDF",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}],
+            "url": "{{core_base}}/api/insider/analyst/export/pdf?metric=summary&date_range=2026-01",
+            "description": "Export PDF. Optional: metric, date_range. From addon Analyst patch.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, Edit, X, Clock } from 'lucide-react';
-import { Button, Card, Input, Alert, Modal, ModalFooter } from '../components/remsana';
+import { Button, Input, Alert, Modal, ModalFooter } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
 import { getOnboardingProgress, saveOnboardingProgress, completeOnboarding, hasBackend } from '../api/onboardingApi';
 import { NIGERIA_STATES, getLGAsByState } from '../utils/nigeriaLGA';
@@ -259,22 +259,22 @@ export default function OnboardingPage() {
   // Step 1: Business Type
   const renderStep1 = () => (
     <div>
-      <h2 className="text-[24px] font-semibold text-[#1F2121] mb-2">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
         What type of business do you operate?
       </h2>
-      <p className="text-[14px] text-[#6B7C7C] mb-6">
+      <p className="text-sm text-gray-400 mb-6">
         Select the structure that best describes your business
       </p>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {BUSINESS_TYPES.map((type) => (
           <label
             key={type.id}
             className={`
-              flex items-start gap-4 p-4 border-2 rounded-[8px] cursor-pointer transition-all
+              flex items-start gap-3.5 p-4 border-2 rounded-2xl cursor-pointer transition-all
               ${formData.businessType === type.id
-                ? 'border-[#1C1C8B] bg-[#1C1C8B]/5'
-                : 'border-[#6B7C7C]/30 hover:border-[#1C1C8B]/50'
+                ? 'border-[#1C1C8B] bg-[#1C1C8B]/5 shadow-sm'
+                : 'border-gray-100 hover:border-[#1C1C8B]/30 hover:bg-gray-50/50'
               }
             `}
           >
@@ -286,19 +286,19 @@ export default function OnboardingPage() {
               onChange={(e) => updateField('businessType', e.target.value)}
               className="sr-only"
             />
-            <div className="text-2xl">{type.icon}</div>
+            <div className="text-2xl mt-0.5">{type.icon}</div>
             <div className="flex-1">
-              <div className="font-medium text-[#1F2121]">{type.label}</div>
-              <div className="text-[12px] text-[#6B7C7C]">{type.description}</div>
+              <div className="text-sm font-semibold text-gray-900">{type.label}</div>
+              <div className="text-[11px] text-gray-400 mt-0.5">{type.description}</div>
             </div>
             {formData.businessType === type.id && (
-              <Check className="w-5 h-5 text-[#1C1C8B]" />
+              <Check className="w-5 h-5 text-[#1C1C8B] flex-shrink-0 mt-0.5" />
             )}
           </label>
         ))}
       </div>
       {errors.businessType && (
-        <p className="text-[12px] text-[#C01F2F] mt-2">{errors.businessType}</p>
+        <p className="text-[11px] text-red-500 mt-2">{errors.businessType}</p>
       )}
     </div>
   );
@@ -306,10 +306,10 @@ export default function OnboardingPage() {
   // Step 2: Business Basics
   const renderStep2 = () => (
     <div>
-      <h2 className="text-[24px] font-semibold text-[#1F2121] mb-2">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
         Tell us about your business
       </h2>
-      <p className="text-[14px] text-[#6B7C7C] mb-6">
+      <p className="text-sm text-gray-400 mb-6">
         Provide your business contact and location information
       </p>
 
@@ -337,14 +337,14 @@ export default function OnboardingPage() {
         </div>
 
         <div>
-          <label className="block text-[14px] font-medium text-[#1F2121] mb-2">
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">
             Business Phone *
           </label>
           <div className="flex gap-2">
             <select
               value="+234"
               onChange={() => {}}
-              className="px-3 py-2 border border-[#6B7C7C]/30 rounded-[8px] text-[14px] bg-white"
+              className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#1C1C8B]/20 focus:border-[#1C1C8B]/30 transition-all"
             >
               <option value="+234">+234</option>
             </select>
@@ -387,7 +387,7 @@ export default function OnboardingPage() {
         </div>
 
         <div>
-          <label className="block text-[14px] font-medium text-[#1F2121] mb-2">
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">
             State *
           </label>
           <select
@@ -400,7 +400,7 @@ export default function OnboardingPage() {
                 updateField('lga', '');
               }
             }}
-            className="w-full h-[40px] px-3 rounded-[4px] border border-[#6B7C7C]/30 focus:border-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white"
+            className="w-full h-[44px] px-3 rounded-xl border border-gray-200 focus:border-[#1C1C8B]/30 focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white text-sm transition-all"
           >
             <option value="">Select State</option>
             {NIGERIA_STATES.map((state) => (
@@ -410,19 +410,19 @@ export default function OnboardingPage() {
             ))}
           </select>
           {errors.state && (
-            <p className="text-[12px] text-[#C01F2F] mt-1">{errors.state}</p>
+            <p className="text-[11px] text-red-500 mt-1">{errors.state}</p>
           )}
         </div>
 
         <div>
-          <label className="block text-[14px] font-medium text-[#1F2121] mb-2">
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">
             Local Government Area (LGA) *
           </label>
           <select
             value={formData.lga}
             onChange={(e) => updateField('lga', e.target.value)}
             disabled={!formData.state}
-            className="w-full h-[40px] px-3 rounded-[4px] border border-[#6B7C7C]/30 focus:border-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+            className="w-full h-[44px] px-3 rounded-xl border border-gray-200 focus:border-[#1C1C8B]/30 focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white disabled:bg-gray-50 disabled:cursor-not-allowed text-sm transition-all"
           >
             <option value="">
               {formData.state ? 'Select LGA' : 'Select a state first'}
@@ -434,10 +434,10 @@ export default function OnboardingPage() {
             ))}
           </select>
           {errors.lga && (
-            <p className="text-[12px] text-[#C01F2F] mt-1">{errors.lga}</p>
+            <p className="text-[11px] text-red-500 mt-1">{errors.lga}</p>
           )}
           {!formData.state && (
-            <p className="text-[12px] text-[#6B7C7C] mt-1">
+            <p className="text-[11px] text-gray-400 mt-1">
               Please select a state to see available LGAs
             </p>
           )}
@@ -449,22 +449,22 @@ export default function OnboardingPage() {
   // Step 3: Business Category & Industry
   const renderStep3 = () => (
     <div>
-      <h2 className="text-[24px] font-semibold text-[#1F2121] mb-2">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
         What industry is your business in?
       </h2>
-      <p className="text-[14px] text-[#6B7C7C] mb-6">
+      <p className="text-sm text-gray-400 mb-6">
         Help us understand your business sector
       </p>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-[14px] font-medium text-[#1F2121] mb-2">
+          <label className="block text-xs font-medium text-gray-500 mb-1.5">
             Primary Industry *
           </label>
           <select
             value={formData.industry}
             onChange={(e) => updateField('industry', e.target.value)}
-            className="w-full h-[40px] px-3 rounded-[4px] border border-[#6B7C7C]/30 focus:border-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white"
+            className="w-full h-[44px] px-3 rounded-xl border border-gray-200 focus:border-[#1C1C8B]/30 focus:ring-2 focus:ring-[#1C1C8B]/20 outline-none bg-white text-sm transition-all"
           >
             <option value="">Select Industry</option>
             {INDUSTRIES.map((ind) => (
@@ -474,12 +474,12 @@ export default function OnboardingPage() {
             ))}
           </select>
           {errors.industry && (
-            <p className="text-[12px] text-[#C01F2F] mt-1">{errors.industry}</p>
+            <p className="text-[11px] text-red-500 mt-1">{errors.industry}</p>
           )}
         </div>
 
         <div>
-          <label className="block text-[14px] font-medium text-[#1F2121] mb-4">
+          <label className="block text-xs font-medium text-gray-500 mb-3">
             What is your annual revenue estimate? (NGN) *
           </label>
           <div className="space-y-2">
@@ -487,10 +487,10 @@ export default function OnboardingPage() {
               <label
                 key={bracket.id}
                 className={`
-                  flex items-center gap-3 p-3 border-2 rounded-[8px] cursor-pointer transition-all
+                  flex items-center gap-3 p-3.5 border-2 rounded-2xl cursor-pointer transition-all
                   ${formData.revenue === bracket.id
-                    ? 'border-[#1C1C8B] bg-[#1C1C8B]/5'
-                    : 'border-[#6B7C7C]/30 hover:border-[#1C1C8B]/50'
+                    ? 'border-[#1C1C8B] bg-[#1C1C8B]/5 shadow-sm'
+                    : 'border-gray-100 hover:border-[#1C1C8B]/30 hover:bg-gray-50/50'
                   }
                 `}
               >
@@ -505,19 +505,19 @@ export default function OnboardingPage() {
                 <div
                   className={`
                     w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                    ${formData.revenue === bracket.id ? 'border-[#1C1C8B]' : 'border-[#6B7C7C]/40'}
+                    ${formData.revenue === bracket.id ? 'border-[#1C1C8B]' : 'border-gray-300'}
                   `}
                 >
                   {formData.revenue === bracket.id && (
                     <div className="w-2.5 h-2.5 rounded-full bg-[#1C1C8B]" />
                   )}
                 </div>
-                <span className="text-[14px] text-[#1F2121]">{bracket.label}</span>
+                <span className="text-sm text-gray-900">{bracket.label}</span>
               </label>
             ))}
           </div>
           {errors.revenue && (
-            <p className="text-[12px] text-[#C01F2F] mt-2">{errors.revenue}</p>
+            <p className="text-[11px] text-red-500 mt-2">{errors.revenue}</p>
           )}
         </div>
       </div>
@@ -527,10 +527,10 @@ export default function OnboardingPage() {
   // Step 4: Employees & Objectives
   const renderStep4 = () => (
     <div>
-      <h2 className="text-[24px] font-semibold text-[#1F2121] mb-2">
+      <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
         How many employees do you have?
       </h2>
-      <p className="text-[14px] text-[#6B7C7C] mb-6">
+      <p className="text-sm text-gray-400 mb-6">
         (including yourself)
       </p>
 
@@ -541,10 +541,10 @@ export default function OnboardingPage() {
               <label
                 key={range.id}
                 className={`
-                  flex items-center gap-3 p-3 border-2 rounded-[8px] cursor-pointer transition-all
+                  flex items-center gap-3 p-3.5 border-2 rounded-2xl cursor-pointer transition-all
                   ${formData.employees === range.id
-                    ? 'border-[#1C1C8B] bg-[#1C1C8B]/5'
-                    : 'border-[#6B7C7C]/30 hover:border-[#1C1C8B]/50'
+                    ? 'border-[#1C1C8B] bg-[#1C1C8B]/5 shadow-sm'
+                    : 'border-gray-100 hover:border-[#1C1C8B]/30 hover:bg-gray-50/50'
                   }
                 `}
               >
@@ -559,31 +559,31 @@ export default function OnboardingPage() {
                 <div
                   className={`
                     w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
-                    ${formData.employees === range.id ? 'border-[#1C1C8B]' : 'border-[#6B7C7C]/40'}
+                    ${formData.employees === range.id ? 'border-[#1C1C8B]' : 'border-gray-300'}
                   `}
                 >
                   {formData.employees === range.id && (
                     <div className="w-2.5 h-2.5 rounded-full bg-[#1C1C8B]" />
                   )}
                 </div>
-                <span className="text-[14px] text-[#1F2121]">{range.label}</span>
+                <span className="text-sm text-gray-900">{range.label}</span>
               </label>
             ))}
           </div>
           {errors.employees && (
-            <p className="text-[12px] text-[#C01F2F]">{errors.employees}</p>
+            <p className="text-[11px] text-red-500">{errors.employees}</p>
           )}
         </div>
 
         <div>
-          <label className="block text-[14px] font-medium text-[#1F2121] mb-4">
+          <label className="block text-xs font-medium text-gray-500 mb-3">
             What are your business goals for the next 12 months? (Select all that apply) *
           </label>
           <div className="space-y-2">
             {BUSINESS_GOALS.map((goal) => (
               <label
                 key={goal}
-                className="flex items-center gap-3 p-3 border border-[#6B7C7C]/30 rounded-[8px] hover:bg-[#f3f0fa] cursor-pointer"
+                className="flex items-center gap-3 p-3.5 border border-gray-100 rounded-2xl hover:bg-gray-50/50 cursor-pointer transition-all"
               >
                 <input
                   type="checkbox"
@@ -594,14 +594,14 @@ export default function OnboardingPage() {
                       : formData.goals.filter((g) => g !== goal);
                     updateField('goals', newGoals);
                   }}
-                  className="w-5 h-5 rounded-[4px] border-2 border-[#6B7C7C]/40 text-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]"
+                  className="w-5 h-5 rounded border-2 border-gray-300 text-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/30"
                 />
-                <span className="text-[14px] text-[#1F2121]">{goal}</span>
+                <span className="text-sm text-gray-900">{goal}</span>
               </label>
             ))}
           </div>
           {errors.goals && (
-            <p className="text-[12px] text-[#C01F2F] mt-2">{errors.goals}</p>
+            <p className="text-[11px] text-red-500 mt-2">{errors.goals}</p>
           )}
         </div>
       </div>
@@ -612,7 +612,7 @@ export default function OnboardingPage() {
   const renderStep5 = () => {
     return (
       <div>
-        <h2 className="text-[24px] font-semibold text-[#1F2121] mb-2">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
           Review Your Information
         </h2>
         <Alert
@@ -622,141 +622,93 @@ export default function OnboardingPage() {
         />
 
         <div className="space-y-4 mb-6">
-          <Card>
-            <div className="p-4">
-              <h3 className="font-semibold text-[#1F2121] mb-4">BUSINESS INFORMATION</h3>
-              <div className="space-y-3 text-[14px]">
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-[#1C1C8B] to-[#667eea]" />
+            <div className="p-4 sm:p-5">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Business Information</h3>
+              <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Business Type:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Business Type:</span>
+                  <span className="text-gray-900 font-medium">
                     {BUSINESS_TYPES.find((t) => t.id === formData.businessType)?.label}
-                    <button
-                      onClick={() => setCurrentStep(1)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(1)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Business Name:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Business Name:</span>
+                  <span className="text-gray-900 font-medium">
                     {formData.businessName}
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(2)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Phone:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Phone:</span>
+                  <span className="text-gray-900 font-medium">
                     {formData.businessPhone}
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(2)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Email:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Email:</span>
+                  <span className="text-gray-900 font-medium">
                     {formData.businessEmail}
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(2)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Address:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Address:</span>
+                  <span className="text-gray-900 font-medium">
                     {formData.businessAddress}
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(2)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">LGA:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">LGA:</span>
+                  <span className="text-gray-900 font-medium">
                     {formData.lga}
-                    <button
-                      onClick={() => setCurrentStep(2)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(2)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="p-4">
-              <h3 className="font-semibold text-[#1F2121] mb-4">BUSINESS DETAILS</h3>
-              <div className="space-y-3 text-[14px]">
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="h-1 bg-gradient-to-r from-[#218D8D] to-[#2dd4bf]" />
+            <div className="p-4 sm:p-5">
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Business Details</h3>
+              <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Industry:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Industry:</span>
+                  <span className="text-gray-900 font-medium">
                     {formData.industry}
-                    <button
-                      onClick={() => setCurrentStep(3)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(3)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Employees:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Employees:</span>
+                  <span className="text-gray-900 font-medium">
                     {EMPLOYEE_RANGES.find((r) => r.id === formData.employees)?.label}
-                    <button
-                      onClick={() => setCurrentStep(4)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(4)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[#6B7C7C]">Revenue:</span>
-                  <span className="text-[#1F2121] font-medium">
+                  <span className="text-gray-400">Revenue:</span>
+                  <span className="text-gray-900 font-medium">
                     {REVENUE_BRACKETS.find((r) => r.id === formData.revenue)?.label}
-                    <button
-                      onClick={() => setCurrentStep(3)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(3)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
                 <div className="flex justify-between items-start">
-                  <span className="text-[#6B7C7C]">Goals:</span>
-                  <span className="text-[#1F2121] font-medium text-right">
+                  <span className="text-gray-400">Goals:</span>
+                  <span className="text-gray-900 font-medium text-right">
                     {formData.goals.join(', ')}
-                    <button
-                      onClick={() => setCurrentStep(4)}
-                      className="ml-2 text-[#1C1C8B] hover:underline"
-                    >
-                      <Edit className="w-4 h-4 inline" />
-                    </button>
+                    <button onClick={() => setCurrentStep(4)} className="ml-2 text-[#1C1C8B] hover:underline"><Edit className="w-3.5 h-3.5 inline" /></button>
                   </span>
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
 
         <div className="mb-6">
@@ -765,9 +717,9 @@ export default function OnboardingPage() {
               type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className="w-5 h-5 rounded-[4px] border-2 border-[#6B7C7C]/40 text-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B] mt-0.5"
+              className="w-5 h-5 rounded border-2 border-gray-300 text-[#1C1C8B] focus:ring-2 focus:ring-[#1C1C8B]/30 mt-0.5"
             />
-            <span className="text-[14px] text-[#1F2121]">
+            <span className="text-sm text-gray-700">
               All information is accurate and I authorize Remsana to use this data for business registration
             </span>
           </label>
@@ -805,69 +757,75 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f0fa] flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-[#f8f6ff] to-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm py-4 px-4 md:px-8">
+      <header className="bg-white/80 backdrop-blur-lg border-b border-gray-100 sticky top-0 z-30 py-3 px-4 sm:px-6">
         <div className="max-w-[600px] mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img 
               src={remsanaIcon} 
               alt="REMSANA" 
-              className="w-10 h-10 object-contain"
+              className="w-9 h-9 object-contain"
             />
             <div>
-              <h1 className="text-[18px] font-semibold text-[#1F2121]">REMSANA</h1>
-              <p className="text-[12px] text-[#6B7C7C]">Profile Setup - Step {currentStep} of {totalSteps}</p>
+              <h1 className="text-base font-bold text-gray-900 leading-tight">REMSANA</h1>
+              <p className="text-[11px] text-gray-400 -mt-0.5">Step {currentStep} of {totalSteps}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={handleSkip}
-              className="px-3 py-1.5 text-[12px] text-[#6B7C7C] hover:text-[#1F2121] hover:bg-[#f3f0fa] rounded-[8px] transition-colors flex items-center gap-1.5"
+              className="px-3 py-1.5 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all flex items-center gap-1.5"
               title="Skip for now"
             >
-              <Clock className="w-4 h-4" />
+              <Clock className="w-3.5 h-3.5" />
               Skip
             </button>
             <button
               onClick={handleExit}
-              className="p-1.5 hover:bg-[#f3f0fa] rounded-full transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
               title="Exit"
               aria-label="Exit onboarding"
             >
-              <X className="w-5 h-5 text-[#6B7C7C]" />
+              <X className="w-4.5 h-4.5 text-gray-400" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Progress Bar */}
-      <div className="bg-white border-b border-[#6B7C7C]/20">
-        <div className="max-w-[600px] mx-auto px-4 py-2">
-          <div className="h-2 bg-[#f3f0fa] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#667eea] to-[#764ba2] transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+      <div className="bg-white/50 backdrop-blur-sm border-b border-gray-50">
+        <div className="max-w-[600px] mx-auto px-4 py-2.5">
+          {/* Step indicators */}
+          <div className="flex items-center gap-1.5 mb-2">
+            {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
+              <div key={step} className="flex-1 flex items-center gap-1.5">
+                <div className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                  step < currentStep ? 'bg-[#1C1C8B]' :
+                  step === currentStep ? 'bg-gradient-to-r from-[#1C1C8B] to-[#667eea]' :
+                  'bg-gray-200'
+                }`} />
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 px-4 py-8">
+      <main className="flex-1 px-4 py-6 sm:py-8">
         <div className="max-w-[600px] mx-auto">
-          <Card className="p-6 md:p-8">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm shadow-gray-100/50 p-5 sm:p-8">
             {renderStepContent()}
 
             {/* Navigation Buttons */}
             {currentStep < 5 && (
-              <div className="flex gap-4 mt-8">
+              <div className="flex gap-3 mt-8">
                 <Button
                   variant="secondary"
                   size="md"
                   onClick={handleBack}
                   disabled={currentStep === 1}
-                  className="flex-1"
+                  className="flex-1 !rounded-xl"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back
@@ -876,14 +834,14 @@ export default function OnboardingPage() {
                   variant="primary"
                   size="md"
                   onClick={handleNext}
-                  className="flex-1"
+                  className="flex-1 !rounded-xl"
                 >
                   Next
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             )}
-          </Card>
+          </div>
         </div>
       </main>
 
@@ -895,28 +853,20 @@ export default function OnboardingPage() {
         size="sm"
       >
         <div className="py-4">
-          <p className="text-[14px] text-[#1F2121] mb-6">
+          <p className="text-sm text-gray-700 mb-6">
             Your progress has been saved. You can continue this setup later from your dashboard.
           </p>
-          <div className="mb-6 p-3 bg-[#f3f0fa] rounded-[8px]">
-            <p className="text-[12px] text-[#6B7C7C] mb-1">Progress saved:</p>
-            <p className="text-[14px] font-medium text-[#1F2121]">
+          <div className="mb-6 p-3.5 bg-gray-50 rounded-xl">
+            <p className="text-[11px] text-gray-400 mb-1">Progress saved:</p>
+            <p className="text-sm font-semibold text-gray-900">
               Step {currentStep} of {totalSteps} ({Math.round(progress)}%)
             </p>
           </div>
           <ModalFooter>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setShowExitModal(false)}
-            >
+            <Button variant="secondary" size="md" onClick={() => setShowExitModal(false)}>
               Continue Setup
             </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={handleConfirmExit}
-            >
+            <Button variant="primary" size="md" onClick={handleConfirmExit}>
               Exit to Dashboard
             </Button>
           </ModalFooter>
@@ -931,7 +881,7 @@ export default function OnboardingPage() {
         size="sm"
       >
         <div className="py-4">
-          <p className="text-[14px] text-[#1F2121] mb-6">
+          <p className="text-sm text-gray-700 mb-6">
             You can complete your business profile later. Your progress will be saved so you can continue where you left off.
           </p>
           <Alert
@@ -940,18 +890,10 @@ export default function OnboardingPage() {
             className="mb-6"
           />
           <ModalFooter>
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={() => setShowSkipModal(false)}
-            >
+            <Button variant="secondary" size="md" onClick={() => setShowSkipModal(false)}>
               Continue Setup
             </Button>
-            <Button
-              variant="primary"
-              size="md"
-              onClick={handleConfirmSkip}
-            >
+            <Button variant="primary" size="md" onClick={handleConfirmSkip}>
               <Clock className="w-4 h-4 mr-2" />
               Skip for Now
             </Button>
@@ -971,10 +913,10 @@ export default function OnboardingPage() {
       >
         <div className="py-4">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full bg-[#218D8D]/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-[#218D8D]/10 flex items-center justify-center">
               <Check className="w-5 h-5 text-[#218D8D]" />
             </div>
-            <p className="text-[14px] text-[#1F2121]">
+            <p className="text-sm text-gray-700">
               You've already completed your business profile setup. No further action is needed.
             </p>
           </div>

@@ -1,0 +1,156 @@
+{
+  "info": {
+    "name": "addon-support-tickets",
+    "description": "Postman tests for addon/remsana-web support tickets (ticketApi, insiderTicketApi). SME endpoints use sme_access_token; Admin endpoints use insider_access_token. Via engagement service port 4000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "support_base", "value": "http://localhost:4000"},
+    {"key": "sme_access_token", "value": ""},
+    {"key": "insider_access_token", "value": ""},
+    {"key": "ticketId", "value": ""}
+  ],
+  "auth": {"type": "noauth"},
+  "item": [
+    {
+      "name": "SME - Support Tickets",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{support_base}}/health",
+            "description": "Health check. No auth required.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "List My Tickets",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+            "url": "{{support_base}}/tickets",
+            "description": "List tickets for current user. Requires: Bearer token (SME).",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subject\": \"Need help with registration\",\n  \"message\": \"I am unable to complete my business registration.\",\n  \"priority\": \"medium\",\n  \"user_name\": \"Jane Doe\"\n}"
+            },
+            "url": "{{support_base}}/tickets",
+            "description": "Create support ticket. priority: low, medium, high. Set ticketId from response.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "pm.test('Status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                    "const j = pm.response.json();",
+                    "const id = j.id || j.data?.id || j.ticket_id;",
+                    "if (id) pm.collectionVariables.set('ticketId', id);"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get Ticket",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+            "url": "{{support_base}}/tickets/{{ticketId}}",
+            "description": "Get ticket with replies. Set ticketId in vars.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Add Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Additional information...\",\n  \"user_name\": \"Jane Doe\"\n}"
+            },
+            "url": "{{support_base}}/tickets/{{ticketId}}/replies",
+            "description": "Add user reply to ticket.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Support Tickets",
+      "item": [
+        {
+          "name": "List All Tickets",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}],
+            "url": "{{support_base}}/admin/tickets?page=1&limit=50&status=open&priority=high",
+            "description": "List all tickets. Optional: status, priority, page, limit. Requires: Bearer token (Insider, support:triage).",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Get Ticket",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}],
+            "url": "{{support_base}}/admin/tickets/{{ticketId}}",
+            "description": "Get ticket with replies.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Update Ticket Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_progress\",\n  \"priority\": \"high\"\n}"
+            },
+            "url": "{{support_base}}/admin/tickets/{{ticketId}}",
+            "description": "Update status (open, in_progress, resolved, closed) and/or priority.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        },
+        {
+          "name": "Add Admin Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"We are looking into this. Please provide more details.\"\n}"
+            },
+            "url": "{{support_base}}/admin/tickets/{{ticketId}}/replies",
+            "description": "Add admin reply. Triggers email to user.",
+            "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+          }
+        }
+      ]
+    }
+  ]
+}

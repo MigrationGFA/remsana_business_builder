@@ -1,7 +1,7 @@
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { CheckCircle2, XCircle, RotateCcw, ArrowRight } from 'lucide-react';
 import { Card, CardContent, Button } from '../components/remsana';
-import { markLessonComplete } from '../api/learningApi';
+import { markLessonComplete, issueCertificate } from '../api/learningApi';
 
 interface QuizResult {
   score: number;
@@ -50,9 +50,15 @@ export default function QuizResultsPage() {
   const correctQuestions = result.questions.filter((q) => result.answers[q.id] === q.correctAnswer);
   const incorrectQuestions = result.questions.filter((q) => result.answers[q.id] !== q.correctAnswer);
 
-  const handleMarkComplete = () => {
+  const handleMarkComplete = async () => {
     if (lessonId && passedFinal) {
-      markLessonComplete(lessonId);
+      await markLessonComplete(lessonId);
+      // Attempt to issue certificate (backend decides if eligible)
+      await issueCertificate({
+        programme_id: '100DAY_SME',
+        title: '100-Day SME Mastery Certificate',
+        criteria: `Passed quiz for lesson ${lessonId} with score ${score}%`,
+      }).catch(() => {}); // Silently ignore if not eligible yet
     }
     navigate('/learning');
   };

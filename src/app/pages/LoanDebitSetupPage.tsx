@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Building2, CreditCard } from 'lucide-react';
 import { Card, CardContent, Button, Input, Alert } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { loansApi } from '../api/loansApi';
+import { hasBackend } from '../api/onboardingApi';
 
 const BANKS = [
   { code: '044', name: 'Access Bank' },
@@ -107,12 +109,17 @@ export default function LoanDebitSetupPage() {
     }
 
     setIsSubmitting(true);
-    // Simulate debit mandate confirmation
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      if (hasBackend()) {
+        // Verify the loan application exists on the backend before completing debit setup
+        await loansApi.getMyApplication();
+      }
       localStorage.setItem('loan_debit_setup', 'true');
       navigate('/loan/status');
-    }, 2000);
+    } catch {
+      setErrors({ otp: 'Failed to confirm debit setup. Please try again.' });
+      setIsSubmitting(false);
+    }
   };
 
   if (!offer) {

@@ -1,0 +1,158 @@
+{
+  "info": {
+    "name": "addon-learning",
+    "description": "Postman tests for addon-learning: Learning endpoints (programmes, lessons, quizzes, progress, certificates). Requires SME Bearer token. Set lessonId and quizId from Get Programme responses.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "core_base", "value": "http://localhost:8080"},
+    {"key": "sme_access_token", "value": ""},
+    {"key": "lessonId", "value": ""},
+    {"key": "quizId", "value": ""}
+  ],
+  "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{sme_access_token}}"}]},
+  "item": [
+    {
+      "name": "Get Programme",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/learning/programmes/100DAY_SME",
+        "description": "Get 100-day programme with modules and lessons. Extract lessonId and quizId from response for subsequent requests.",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 2xx', () => pm.response.to.have.status(200));",
+                "pm.test('Response has modules/lessons', () => {",
+                "  const j = pm.response.json();",
+                "  const data = j.data || j;",
+                "  const modules = data.modules || data.lessons || [];",
+                "  if (modules.length) {",
+                "    const first = modules[0];",
+                "    const lessons = first.lessons || first.items || [];",
+                "    const lesson = lessons[0];",
+                "    if (lesson?.id) pm.collectionVariables.set('lessonId', lesson.id);",
+                "    if (lesson?.quiz_id) pm.collectionVariables.set('quizId', lesson.quiz_id);",
+                "    else if (lesson?.quizId) pm.collectionVariables.set('quizId', lesson.quizId);",
+                "  }",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Get Lesson",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/learning/lessons/{{lessonId}}",
+        "description": "Get lesson with resources and quiz. Set lessonId in vars.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Get My Progress",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/learning/progress/me",
+        "description": "Get current user's learning progress. Returns currentDay, totalDays, completionPercentage, lessonsCompleted, averageScore, progress, quizAttempts, certificates.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Record Lesson View",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{core_base}}/api/v1/learning/lessons/{{lessonId}}/view",
+        "description": "Record lesson view. Set lessonId in vars.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Record Video Progress",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"watchedSeconds\": 120,\n  \"durationSeconds\": 600\n}"
+        },
+        "url": "{{core_base}}/api/v1/learning/lessons/{{lessonId}}/video-progress",
+        "description": "Record video playback progress. Set lessonId in vars.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Mark Lesson Complete",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {"mode": "raw", "raw": "{}"},
+        "url": "{{core_base}}/api/v1/learning/lessons/{{lessonId}}/complete",
+        "description": "Mark lesson as completed (e.g. after passing quiz). Triggers engagement event if configured. Set lessonId in vars.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Submit Quiz Attempt",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"answers\": {\n    \"question_id_1\": \"A\",\n    \"question_id_2\": \"B\"\n  },\n  \"timeSpent\": 180\n}"
+        },
+        "url": "{{core_base}}/api/v1/learning/quizzes/{{quizId}}/attempt",
+        "description": "Submit quiz answers. answers: { questionId: optionKey }. timeSpent: seconds. Set quizId in vars. Returns score, passed, correctAnswers, totalQuestions. Triggers engagement event if configured.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));", "pm.test('Response has score', () => pm.expect(pm.response.json()).to.have.property('score'));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Get Certificates",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/learning/certificates",
+        "description": "Get user's certificates.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    },
+    {
+      "name": "Issue Certificate",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"programme_id\": \"programme_uuid\",\n  \"title\": \"100-Day SME Mastery Certificate\",\n  \"criteria\": { \"lessons_completed\": 100 }\n}"
+        },
+        "url": "{{core_base}}/api/v1/learning/certificates",
+        "description": "Issue certificate when criteria met. programme_id from Get Programme response.",
+        "event": [{"listen": "test", "script": {"exec": ["pm.test('Status is 2xx', () => pm.response.to.have.status(200));"], "type": "text/javascript"}}]
+      }
+    }
+  ]
+}

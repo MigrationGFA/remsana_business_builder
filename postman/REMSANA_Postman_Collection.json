@@ -1,0 +1,176 @@
+{
+  "info": {
+    "name": "REMSANA Platform API",
+    "description": "Complete API collection for REMSANA: PHP Core API, Node Engagement Service, Support Tickets (addon), and Chat (addon). Use for testing, documentation, and identifying missing/inconsistent endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "core_base", "value": "http://localhost:8080"},
+    {"key": "engagement_base", "value": "http://localhost:4000"},
+    {"key": "support_base", "value": "http://localhost:4000"},
+    {"key": "chat_base", "value": "http://localhost:4000"},
+    {"key": "sme_access_token", "value": ""},
+    {"key": "sme_refresh_token", "value": ""},
+    {"key": "insider_access_token", "value": ""},
+    {"key": "insider_refresh_token", "value": ""},
+    {"key": "challenge_token", "value": ""},
+    {"key": "lessonId", "value": ""},
+    {"key": "quizId", "value": ""},
+    {"key": "userId", "value": ""},
+    {"key": "txnId", "value": ""},
+    {"key": "regId", "value": ""},
+    {"key": "videoId", "value": ""},
+    {"key": "ticketId", "value": ""},
+    {"key": "conversationId", "value": ""},
+    {"key": "msgId", "value": ""}
+  ],
+  "auth": {"type": "noauth"},
+  "item": [
+    {
+      "name": "1. Core API - SME Auth",
+      "item": [
+        {"name": "Login (SME)", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"your_password\"\n}"}, "url": "{{core_base}}/api/v1/auth/login", "description": "Authenticate SME user. Returns access_token and refresh_token. If MFA enabled, returns mfa_required and challenge_token instead."}},
+        {"name": "Register", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"full_name\": \"Jane Doe\",\n  \"phone_number\": \"+2348012345678\"\n}"}, "url": "{{core_base}}/api/v1/auth/register", "description": "Register new SME user. Returns access_token and refresh_token."}},
+        {"name": "Forgot Password", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"email\": \"user@example.com\"\n}"}, "url": "{{core_base}}/api/v1/auth/forgot-password", "description": "Request password reset email."}},
+        {"name": "Reset Password", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"token\": \"reset_token_from_email\",\n  \"password\": \"NewSecurePass123!\"\n}"}, "url": "{{core_base}}/api/v1/auth/reset-password", "description": "Set new password using token from email link."}},
+        {"name": "MFA Challenge", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"challenge_token\": \"{{challenge_token}}\",\n  \"code\": \"123456\"\n}"}, "url": "{{core_base}}/api/v1/auth/mfa/challenge", "description": "Verify 6-digit TOTP code when MFA required on login. Set challenge_token from login response."}},
+        {"name": "MFA Setup", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{}"}, "url": "{{core_base}}/api/v1/auth/mfa/setup", "description": "Initiate MFA setup. Returns secret and QR. Requires: Bearer token (SME)."}},
+        {"name": "MFA Verify Setup", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"code\": \"123456\"\n}"}, "url": "{{core_base}}/api/v1/auth/mfa/verify-setup", "description": "Verify and enable MFA with 6-digit code. Requires: Bearer token (SME)."}},
+        {"name": "MFA Disable", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"code\": \"123456\"\n}"}, "url": "{{core_base}}/api/v1/auth/mfa/disable", "description": "Disable MFA. Requires: Bearer token (SME)."}},
+        {"name": "Refresh Token (SME)", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"refresh_token\": \"{{sme_refresh_token}}\"\n}"}, "url": "{{core_base}}/api/v1/auth/refresh", "description": "Refresh access token. No auth required."}},
+        {"name": "Logout (SME)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{core_base}}/api/v1/auth/logout", "description": "Logout SME user. Requires: Bearer token (SME)."}}
+      ]
+    },
+    {
+      "name": "2. Core API - Learning",
+      "item": [
+        {"name": "Get Programme", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{core_base}}/api/v1/learning/programmes/100DAY_SME", "description": "Get 100-day programme with modules and lessons. Requires: Bearer token (SME)."}},
+        {"name": "Get Lesson", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{core_base}}/api/v1/learning/lessons/{{lessonId}}", "description": "Get lesson with resources and quiz. Set lessonId in vars. Requires: Bearer token (SME)."}},
+        {"name": "Get My Progress", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{core_base}}/api/v1/learning/progress/me", "description": "Get current user's learning progress. Requires: Bearer token (SME)."}},
+        {"name": "Record Lesson View", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{}"}, "url": "{{core_base}}/api/v1/learning/lessons/{{lessonId}}/view", "description": "Record lesson view. Set lessonId in vars. Requires: Bearer token (SME)."}},
+        {"name": "Record Video Progress", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"watchedSeconds\": 120,\n  \"durationSeconds\": 600\n}"}, "url": "{{core_base}}/api/v1/learning/lessons/{{lessonId}}/video-progress", "description": "Record video playback progress. Requires: Bearer token (SME)."}},
+        {"name": "Submit Quiz Attempt", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"answers\": {\n    \"question_id_1\": \"A\",\n    \"question_id_2\": \"B\"\n  },\n  \"timeSpent\": 180\n}"}, "url": "{{core_base}}/api/v1/learning/quizzes/{{quizId}}/attempt", "description": "Submit quiz answers. Set quizId in vars. Requires: Bearer token (SME)."}},
+        {"name": "Get Certificates", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{core_base}}/api/v1/learning/certificates", "description": "Get user's certificates. Requires: Bearer token (SME)."}},
+        {"name": "Issue Certificate", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"programme_id\": \"programme_uuid\",\n  \"title\": \"100-Day SME Mastery Certificate\",\n  \"criteria\": { \"lessons_completed\": 100 }\n}"}, "url": "{{core_base}}/api/v1/learning/certificates", "description": "Issue certificate when criteria met. Requires: Bearer token (SME)."}}
+      ]
+    },
+    {
+      "name": "3. Core API - Users & Subscriptions",
+      "item": [
+        {"name": "Get Me (Profile)", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{core_base}}/api/v1/users/me", "description": "Get current user profile. Requires: Bearer token (SME)."}},
+        {"name": "Update Me", "request": {"method": "PUT", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"full_name\": \"Updated Name\",\n  \"phone_number\": \"+2348012345678\"\n}"}, "url": "{{core_base}}/api/v1/users/me", "description": "Update current user profile. Requires: Bearer token (SME)."}},
+        {"name": "Get My Subscription", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{core_base}}/api/v1/subscriptions/me", "description": "Get current user's subscription. Requires: Bearer token (SME)."}},
+        {"name": "Upgrade Subscription", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"tier\": \"pro\"\n}"}, "url": "{{core_base}}/api/v1/subscriptions/upgrade", "description": "Upgrade subscription tier. Requires: Bearer token (SME)."}},
+        {"name": "Cancel Subscription", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Optional cancellation reason\"\n}"}, "url": "{{core_base}}/api/v1/subscriptions/cancel", "description": "Cancel subscription. Requires: Bearer token (SME)."}}
+      ]
+    },
+    {
+      "name": "4. Core API - xAPI",
+      "item": [
+        {"name": "Store xAPI Statement", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"actor\": {\n    \"mbox\": \"mailto:user@example.com\",\n    \"name\": \"Jane Doe\"\n  },\n  \"verb\": {\n    \"id\": \"https://w3id.org/xapi/adl/verbs/completed\",\n    \"display\": { \"en-US\": \"completed\" }\n  },\n  \"object\": {\n    \"id\": \"https://remsana.com/learning/lessons/lesson_123\",\n    \"definition\": {\n      \"type\": \"http://adlnet.gov/expapi/activities/lesson\",\n      \"name\": { \"en-US\": \"Day 1: Business Basics\" }\n    }\n  },\n  \"result\": { \"completion\": true },\n  \"timestamp\": \"2026-01-27T12:00:00Z\"\n}"}, "url": "{{core_base}}/api/v1/xapi/statements", "description": "Store xAPI (TinCan) learning statement. Requires: Bearer token (SME)."}}
+      ]
+    },
+    {
+      "name": "5. Core API - Insider Auth",
+      "item": [
+        {"name": "Login (Insider Admin/Analyst)", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"email\": \"admin@remsana.com\",\n  \"password\": \"admin123\",\n  \"role\": \"ADMIN\"\n}"}, "url": "{{core_base}}/api/insider/auth/login", "description": "Authenticate Admin or Analyst. Use role: ADMIN or ANALYST. If MFA enabled, returns mfa_required and challenge_token. No auth required."}},
+        {"name": "Verify MFA (Insider)", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"challenge_token\": \"{{challenge_token}}\",\n  \"code\": \"123456\"\n}"}, "url": "{{core_base}}/api/insider/auth/verify-mfa", "description": "Verify 6-digit MFA code. Set challenge_token from login response."}},
+        {"name": "Refresh Token (Insider)", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"refresh_token\": \"{{insider_refresh_token}}\"\n}"}, "url": "{{core_base}}/api/insider/auth/refresh", "description": "Refresh insider access token. No auth required."}},
+        {"name": "Logout (Insider)", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/auth/logout", "description": "Logout insider. Requires: Bearer token (Insider)."}}
+      ]
+    },
+    {
+      "name": "6. Core API - Admin (ADMIN role)",
+      "item": [
+        {"name": "List Users", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/users?page=1&limit=50", "description": "List users with pagination. Requires: Bearer token (ADMIN)."}},
+        {"name": "Get User", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/users/{{userId}}", "description": "Get single user. Set userId in vars. Requires: Bearer token (ADMIN)."}},
+        {"name": "Update User", "request": {"method": "PUT", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"full_name\": \"New Name\",\n  \"reason\": \"Audit reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/users/{{userId}}", "description": "Update user. Requires: Bearer token (ADMIN)."}},
+        {"name": "Reset User MFA", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"User requested reset\"\n}"}, "url": "{{core_base}}/api/insider/admin/users/{{userId}}/reset-mfa", "description": "Reset user MFA. Requires: Bearer token (ADMIN)."}},
+        {"name": "Suspend User", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Suspension reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/users/{{userId}}/suspend", "description": "Suspend user. Requires: Bearer token (ADMIN)."}},
+        {"name": "Ban User", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Ban reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/users/{{userId}}/ban", "description": "Ban user. Requires: Bearer token (ADMIN)."}},
+        {"name": "Finances Summary", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/finances/summary", "description": "Get financial summary. Requires: Bearer token (ADMIN)."}},
+        {"name": "Transactions", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/transactions", "description": "List transactions. Requires: Bearer token (ADMIN)."}},
+        {"name": "Refund Transaction", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Refund reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/transactions/{{txnId}}/refund", "description": "Refund transaction. Set txnId in vars. Requires: Bearer token (ADMIN)."}},
+        {"name": "Override Transaction", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Override reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/transactions/{{txnId}}/override", "description": "Override transaction. Requires: Bearer token (ADMIN)."}},
+        {"name": "CAC Registrations", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/cac/registrations", "description": "List CAC registrations. Requires: Bearer token (ADMIN)."}},
+        {"name": "Get CAC Registration", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/cac/registrations/{{regId}}", "description": "Get single CAC registration. Set regId in vars. Requires: Bearer token (ADMIN)."}},
+        {"name": "Submit to CAC", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Submit reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/cac/registrations/{{regId}}/submit-to-cac", "description": "Submit registration to CAC. Requires: Bearer token (ADMIN)."}},
+        {"name": "Approve CAC Registration", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Approved\"\n}"}, "url": "{{core_base}}/api/insider/admin/cac/registrations/{{regId}}/approve", "description": "Approve CAC registration. Requires: Bearer token (ADMIN)."}},
+        {"name": "Reject CAC Registration", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Rejected reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/cac/registrations/{{regId}}/reject", "description": "Reject CAC registration. Requires: Bearer token (ADMIN)."}},
+        {"name": "Content Videos", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/content/videos", "description": "List videos. Requires: Bearer token (ADMIN)."}},
+        {"name": "Publish Video", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Publish reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/content/videos/{{videoId}}/publish", "description": "Publish video. Requires: Bearer token (ADMIN)."}},
+        {"name": "Unpublish Video", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"reason\": \"Unpublish reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/content/videos/{{videoId}}/unpublish", "description": "Unpublish video. Requires: Bearer token (ADMIN)."}},
+        {"name": "Update Video", "request": {"method": "PUT", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"title\": \"New Title\",\n  \"description\": \"New description\",\n  \"reason\": \"Update reason\"\n}"}, "url": "{{core_base}}/api/insider/admin/content/videos/{{videoId}}", "description": "Update video. Requires: Bearer token (ADMIN)."}},
+        {"name": "System Health", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/system/health", "description": "Get system health. Requires: Bearer token (ADMIN)."}},
+        {"name": "Audit Logs", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/admin/audit-logs?limit=100", "description": "Get audit logs. Requires: Bearer token (ADMIN)."}}
+      ]
+    },
+    {
+      "name": "7. Core API - Analyst (ANALYST role)",
+      "item": [
+        {"name": "Metrics Summary", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/metrics/summary", "description": "Get all KPIs. Requires: Bearer token (ANALYST)."}},
+        {"name": "Total Users", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/users/total", "description": "Get total user count. Requires: Bearer token (ANALYST)."}},
+        {"name": "Active Users", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/users/active", "description": "Get active users (7d). Requires: Bearer token (ANALYST)."}},
+        {"name": "MRR", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/revenue/mrr", "description": "Get MRR. Requires: Bearer token (ANALYST)."}},
+        {"name": "ARPU", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/revenue/arpu", "description": "Get ARPU. Requires: Bearer token (ANALYST)."}},
+        {"name": "Churn Rate", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/churn/rate", "description": "Get churn rate. Requires: Bearer token (ANALYST)."}},
+        {"name": "Cohorts", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/cohorts", "description": "Get cohort data. Requires: Bearer token (ANALYST)."}},
+        {"name": "Retention Funnel", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/retention/funnel", "description": "Get retention funnel. Requires: Bearer token (ANALYST)."}},
+        {"name": "Registration Funnel", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/registration/funnel", "description": "Get registration funnel. Requires: Bearer token (ANALYST)."}},
+        {"name": "Learning Summary", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/learning/summary", "description": "Get learning metrics. Requires: Bearer token (ANALYST)."}},
+        {"name": "Export CSV", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/export/csv?metric=users&date_range=2026-01", "description": "Export CSV. Requires: Bearer token (ANALYST)."}},
+        {"name": "Export PDF", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{core_base}}/api/insider/analyst/export/pdf", "description": "Export PDF. Requires: Bearer token (ANALYST)."}}
+      ]
+    },
+    {
+      "name": "8. Engagement Service (Node)",
+      "item": [
+        {"name": "Health Check", "request": {"method": "GET", "header": [], "url": "{{engagement_base}}/health", "description": "Health check. No auth required."}},
+        {"name": "Lesson Completed", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}", "description": "Optional"}], "body": {"mode": "raw", "raw": "{\n  \"userId\": \"user_uuid\",\n  \"lessonId\": \"lesson_uuid\"\n}"}, "url": "{{engagement_base}}/events/lesson-completed", "description": "Triggered when user completes lesson. Optional Bearer for Core API fetch."}},
+        {"name": "Quiz Completed", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"userId\": \"user_uuid\",\n  \"quizId\": \"quiz_uuid\",\n  \"passed\": true,\n  \"score\": 85\n}"}, "url": "{{engagement_base}}/events/quiz-completed", "description": "Triggered when user completes quiz. No auth required."}},
+        {"name": "Certificate Issued", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}], "body": {"mode": "raw", "raw": "{\n  \"userId\": \"user_uuid\",\n  \"certificateId\": \"cert_uuid\",\n  \"title\": \"100-Day SME Mastery Certificate\"\n}"}, "url": "{{engagement_base}}/events/certificate-issued", "description": "Triggered when certificate is issued. No auth required."}}
+      ]
+    },
+    {
+      "name": "9. Support Tickets - SME (via engagement service, port 4000)",
+      "item": [
+        {"name": "Health Check", "request": {"method": "GET", "header": [], "url": "{{support_base}}/health", "description": "Health check. No auth required."}},
+        {"name": "List My Tickets", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{support_base}}/tickets", "description": "List tickets for current user. Requires: Bearer token (SME)."}},
+        {"name": "Create Ticket", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"subject\": \"Need help with registration\",\n  \"message\": \"I am unable to complete my business registration.\",\n  \"priority\": \"medium\",\n  \"user_name\": \"Jane Doe\"\n}"}, "url": "{{support_base}}/tickets", "description": "Create support ticket. priority: low, medium, high. Requires: Bearer token (SME)."}},
+        {"name": "Get Ticket", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{support_base}}/tickets/{{ticketId}}", "description": "Get ticket with replies. Set ticketId in vars. Requires: Bearer token (SME)."}},
+        {"name": "Add Reply", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"message\": \"Additional information...\",\n  \"user_name\": \"Jane Doe\"\n}"}, "url": "{{support_base}}/tickets/{{ticketId}}/replies", "description": "Add user reply to ticket. Set ticketId in vars. Requires: Bearer token (SME)."}}
+      ]
+    },
+    {
+      "name": "10. Support Tickets - Admin (via engagement service, port 4000)",
+      "item": [
+        {"name": "List All Tickets", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{support_base}}/admin/tickets?page=1&limit=50&status=open&priority=high", "description": "List all tickets. Optional query: status, priority, page, limit. Requires: Bearer token (Insider, support:triage)."}},
+        {"name": "Get Ticket", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{support_base}}/admin/tickets/{{ticketId}}", "description": "Get ticket with replies. Set ticketId in vars. Requires: Bearer token (Insider)."}},
+        {"name": "Update Ticket Status", "request": {"method": "PATCH", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"status\": \"in_progress\",\n  \"priority\": \"high\"\n}"}, "url": "{{support_base}}/admin/tickets/{{ticketId}}", "description": "Update status (open, in_progress, resolved, closed) and/or priority. Requires: Bearer token (Insider)."}},
+        {"name": "Add Admin Reply", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"message\": \"We are looking into this. Please provide more details.\"\n}"}, "url": "{{support_base}}/admin/tickets/{{ticketId}}/replies", "description": "Add admin reply. Triggers email to user. Requires: Bearer token (Insider)."}}
+      ]
+    },
+    {
+      "name": "11. Chat - SME (via engagement service, port 4000)",
+      "item": [
+        {"name": "Health Check", "request": {"method": "GET", "header": [], "url": "{{chat_base}}/health", "description": "Health check. No auth required."}},
+        {"name": "List Conversations", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{chat_base}}/chat/conversations", "description": "List my conversations. Requires: Bearer token (SME)."}},
+        {"name": "Create Conversation", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"ticket_id\": \"optional-ticket-uuid\"\n}"}, "url": "{{chat_base}}/chat/conversations", "description": "Create or get existing conversation. Optional ticket_id to link to support ticket. Requires: Bearer token (SME)."}},
+        {"name": "Get Conversation", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{chat_base}}/chat/conversations/{{conversationId}}", "description": "Get conversation with messages. Set conversationId in vars. Requires: Bearer token (SME)."}},
+        {"name": "Send Message", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"content\": \"Hello, I need help with my registration.\",\n  \"type\": \"text\"\n}"}, "url": "{{chat_base}}/chat/conversations/{{conversationId}}/messages", "description": "Send text message. For file/image use Upload endpoint. Requires: Bearer token (SME)."}},
+        {"name": "Upload File/Image", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "body": {"mode": "formdata", "formdata": [{"key": "file", "type": "file", "src": ""}]}, "url": "{{chat_base}}/chat/conversations/{{conversationId}}/upload", "description": "Upload file or image. Use form-data with key 'file'. Requires: Bearer token (SME)."}},
+        {"name": "Mark Message Read", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}], "url": "{{chat_base}}/chat/conversations/{{conversationId}}/messages/{{msgId}}/read", "description": "Mark admin message as read. Set conversationId and msgId in vars. Requires: Bearer token (SME)."}}
+      ]
+    },
+    {
+      "name": "12. Chat - Admin (via engagement service, port 4000)",
+      "item": [
+        {"name": "List All Conversations", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{chat_base}}/chat/admin/conversations", "description": "List all conversations. Requires: Bearer token (Insider, ADMIN)."}},
+        {"name": "Get Conversation", "request": {"method": "GET", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{chat_base}}/chat/admin/conversations/{{conversationId}}", "description": "Get conversation with messages. Requires: Bearer token (Insider)."}},
+        {"name": "Send Message", "request": {"method": "POST", "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "raw", "raw": "{\n  \"content\": \"We are here to help. Can you provide more details?\",\n  \"type\": \"text\"\n}"}, "url": "{{chat_base}}/chat/admin/conversations/{{conversationId}}/messages", "description": "Send admin reply. Requires: Bearer token (Insider)."}},
+        {"name": "Upload File/Image", "request": {"method": "POST", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "body": {"mode": "formdata", "formdata": [{"key": "file", "type": "file", "src": ""}]}, "url": "{{chat_base}}/chat/admin/conversations/{{conversationId}}/upload", "description": "Upload file or image. Use form-data with key 'file'. Requires: Bearer token (Insider)."}},
+        {"name": "Mark Message Read", "request": {"method": "PATCH", "header": [{"key": "Authorization", "value": "Bearer {{insider_access_token}}"}], "url": "{{chat_base}}/chat/admin/conversations/{{conversationId}}/messages/{{msgId}}/read", "description": "Mark user message as read. Requires: Bearer token (Insider)."}}
+      ]
+    }
+  ]
+}

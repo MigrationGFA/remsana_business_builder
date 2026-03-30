@@ -48,6 +48,9 @@ export interface LearningQuiz {
   passing_score: number;
   time_limit_sec: number;
   questions?: LearningQuizQuestion[];
+  attempts_used?: number;
+  attempts_remaining?: number;
+  max_attempts?: number;
 }
 
 export interface LearningQuizQuestion {
@@ -200,7 +203,11 @@ export async function submitQuizAttempt(
       timeSpent,
     });
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.response?.status === 403) {
+      const msg = error.response?.data?.message || 'Maximum attempts reached';
+      throw new Error(msg);
+    }
     console.error('Failed to submit quiz attempt:', error);
     return null;
   }
@@ -216,5 +223,43 @@ export async function markLessonComplete(lessonId: string): Promise<void> {
     await api.post(`/learning/lessons/${lessonId}/complete`);
   } catch (error) {
     console.error('Failed to mark lesson complete:', error);
+  }
+}
+
+/**
+ * Get user's certificates (standalone list)
+ */
+export async function getCertificates(): Promise<Array<{
+  id: string;
+  title: string;
+  issued_at: string;
+  pdf_url?: string;
+  programme_id?: string;
+}>> {
+  if (!hasBackend()) return [];
+  try {
+    const { data } = await api.get('/learning/certificates');
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error('Failed to fetch certificates:', error);
+    return [];
+  }
+}
+
+/**
+ * Issue a certificate (e.g. after completing a programme)
+ */
+export async function issueCertificate(params: {
+  programme_id: string;
+  title: string;
+  criteria?: string;
+}): Promise<{ id: string; title: string; issued_at: string; pdf_url?: string } | null> {
+  if (!hasBackend()) return null;
+  try {
+    const { data } = await api.post('/learning/certificates', params);
+    return data;
+  } catch (error) {
+    console.error('Failed to issue certificate:', error);
+    return null;
   }
 }

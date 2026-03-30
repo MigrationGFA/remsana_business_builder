@@ -156,6 +156,52 @@ export function hasBackend() {
   return Boolean(API_BASE_URL);
 }
 
+// Engagement Service client (Support Tickets, Chat – Node.js, port 4000)
+const ENGAGEMENT_API_URL = import.meta.env.VITE_ENGAGEMENT_API_URL || '';
+
+export function hasEngagementService() {
+  return Boolean(ENGAGEMENT_API_URL);
+}
+
+export const engagementApi = axios.create({
+  baseURL: ENGAGEMENT_API_URL || undefined,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Attach SME Bearer token to engagement service requests
+engagementApi.interceptors.request.use((config) => {
+  const token = localStorage.getItem('remsana_auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Engagement service with insider token (for admin ticket/chat endpoints)
+export const engagementInsiderApi = axios.create({
+  baseURL: ENGAGEMENT_API_URL || undefined,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+engagementInsiderApi.interceptors.request.use((config) => {
+  const auth = localStorage.getItem('remsana_insider_auth');
+  if (auth) {
+    try {
+      const tokens = JSON.parse(auth);
+      if (tokens.access_token) {
+        config.headers.Authorization = `Bearer ${tokens.access_token}`;
+      }
+    } catch (_) {}
+  }
+  return config;
+});
+
 // Insider API client (separate base URL)
 const INSIDER_API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '/api/insider') || '';
 

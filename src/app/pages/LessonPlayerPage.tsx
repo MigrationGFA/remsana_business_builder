@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Play } from 'lucide-react';
 import { Card, CardContent, Button } from '../components/remsana';
-import { getLesson, recordLessonView, recordVideoProgress } from '../api/learningApi';
+import { getLesson, recordLessonView } from '../api/learningApi';
 import type { LearningLesson } from '../api/learningApi';
+import { LessonVideoPlayer, isScreenpalLessonUrl } from '../components/learning/LessonVideoPlayer';
 
 function formatDuration(sec?: number): string {
   if (!sec) return '—';
@@ -38,12 +39,6 @@ export default function LessonPlayerPage() {
       .finally(() => setLoading(false));
   }, [lessonId]);
 
-  const handleVideoProgress = () => {
-    if (lessonId && lesson?.duration_sec) {
-      recordVideoProgress(lessonId, lesson.duration_sec, lesson.duration_sec);
-    }
-  };
-
   const overviewLines = lesson?.overview
     ? lesson.overview.split('\n').filter((s) => s.trim())
     : [];
@@ -72,6 +67,8 @@ export default function LessonPlayerPage() {
   }
 
   const duration = formatDuration(lesson.duration_sec);
+  const screenpalEmbed =
+    lesson.video_url && isScreenpalLessonUrl(lesson.video_url);
 
   return (
     <div className="min-h-screen bg-[#f3f0fa]">
@@ -94,7 +91,11 @@ export default function LessonPlayerPage() {
       <main className="max-w-7xl mx-auto px-4 py-8">
         <Card className="mb-6">
           <CardContent className="p-0">
-            <div className="relative bg-black aspect-video flex items-center justify-center">
+            <div
+              className={`relative bg-black flex items-center justify-center ${
+                screenpalEmbed ? 'min-h-[400px]' : 'aspect-video'
+              }`}
+            >
               {!videoPlaying ? (
                 <button
                   onClick={() => setVideoPlaying(true)}
@@ -107,11 +108,10 @@ export default function LessonPlayerPage() {
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-white">
                   {lesson.video_url ? (
-                    <video
-                      src={lesson.video_url}
-                      controls
-                      className="w-full h-full"
-                      onEnded={handleVideoProgress}
+                    <LessonVideoPlayer
+                      lessonId={lesson.id}
+                      videoUrl={lesson.video_url}
+                      durationSec={lesson.duration_sec}
                     />
                   ) : (
                     <div className="text-center">
@@ -205,22 +205,42 @@ export default function LessonPlayerPage() {
           <Card className="mb-6">
             <CardContent className="p-6">
               <h3 className="text-[18px] font-semibold text-[#1F2121] mb-2">✋ Ready for Quiz?</h3>
-              <p className="text-[14px] text-[#6B7C7C] mb-4">
+              <p className="text-[14px] text-[#6B7C7C] mb-2">
                 Test your knowledge on the concepts covered in this lesson.
               </p>
-              <div className="flex gap-3">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="flex-1"
-                  onClick={() => navigate(`/quiz/${lesson.id}`)}
-                >
-                  ✎ Take Quiz
-                </Button>
-                <Button variant="secondary" size="lg" onClick={() => navigate('/learning')}>
-                  Skip for Now
-                </Button>
-              </div>
+              {lesson.quiz.max_attempts != null && (
+                <p className={`text-[13px] mb-4 ${
+                  lesson.quiz.attempts_remaining !== undefined && lesson.quiz.attempts_remaining <= 0
+                    ? 'text-red-600 font-medium'
+                    : 'text-[#6B7C7C]'
+                }`}>
+                  {lesson.quiz.attempts_remaining !== undefined && lesson.quiz.attempts_remaining <= 0
+                    ? `No attempts remaining (${lesson.quiz.attempts_used ?? 0}/${lesson.quiz.max_attempts} used)`
+                    : `You have ${lesson.quiz.attempts_remaining ?? lesson.quiz.max_attempts} attempt${(lesson.quiz.attempts_remaining ?? lesson.quiz.max_attempts) !== 1 ? 's' : ''} remaining`
+                  }
+                </p>
+              )}
+              {(!lesson.quiz.max_attempts || !lesson.quiz.attempts_remaining || lesson.quiz.attempts_remaining > 0) ? (
+                <div className="flex gap-3">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="flex-1"
+                    onClick={() => navigate(`/quiz/${lesson.id}`)}
+                  >
+                    ✎ Take Quiz
+                  </Button>
+                  <Button variant="secondary" size="lg" onClick={() => navigate('/learning')}>
+                    Skip for Now
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex gap-3">
+                  <Button variant="secondary" size="lg" onClick={() => navigate('/learning')}>
+                    Back to Learning
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

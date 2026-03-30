@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, TrendingUp } from 'lucide-react';
 import { Card, CardContent, Button, Badge } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
+import { loansApi } from '../api/loansApi';
+import { hasBackend } from '../api/onboardingApi';
 
 interface RepaymentSchedule {
   loanAmount: number;
@@ -26,32 +28,17 @@ export default function LoanRepaymentSchedulePage() {
   const [schedule, setSchedule] = useState<RepaymentSchedule | null>(null);
 
   useEffect(() => {
-    // Generate repayment schedule
-    const offer = JSON.parse(localStorage.getItem('selected_loan_offer') || '{}');
-    if (offer.loanAmount) {
-      const monthlyPayment = offer.monthlyPayment || 2150;
-      const termMonths = offer.termMonths || 12;
-      const loanAmount = offer.loanAmount || 25000;
-      const apr = offer.apr || 8.5;
-
+    const buildSchedule = (loanAmount: number, apr: number, monthlyPayment: number, termMonths: number, totalInterest: number, totalRepayment: number) => {
       const scheduleData: RepaymentSchedule = {
-        loanAmount,
-        apr,
-        monthlyPayment,
-        termMonths,
-        totalInterest: offer.totalInterest || 2800,
-        totalRepayment: offer.totalRepayment || 27800,
-        schedule: [],
+        loanAmount, apr, monthlyPayment, termMonths,
+        totalInterest, totalRepayment, schedule: [],
       };
-
       let balance = loanAmount;
       const monthlyRate = apr / 100 / 12;
-
       for (let i = 1; i <= termMonths; i++) {
         const interest = balance * monthlyRate;
         const principal = monthlyPayment - interest;
         balance -= principal;
-
         scheduleData.schedule.push({
           paymentNumber: i,
           dueDate: new Date(Date.now() + i * 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -61,8 +48,32 @@ export default function LoanRepaymentSchedulePage() {
           balanceAfter: Math.max(0, Math.round(balance)),
         });
       }
-
       setSchedule(scheduleData);
+    };
+
+    const loadFromLocalStorage = () => {
+      const offer = JSON.parse(localStorage.getItem('selected_loan_offer') || '{}');
+      if (offer.loanAmount) {
+        buildSchedule(
+          offer.loanAmount, offer.apr || 8.5,
+          offer.monthlyPayment || 2150, offer.termMonths || 12,
+          offer.totalInterest || 2800, offer.totalRepayment || 27800,
+        );
+      }
+    };
+
+    if (hasBackend()) {
+      loansApi.getMyApplication()
+        .then((app) => {
+          if (app) {
+            buildSchedule(app.loanAmount, app.apr, app.monthlyPayment, app.termMonths, 0, 0);
+          } else {
+            loadFromLocalStorage();
+          }
+        })
+        .catch(() => loadFromLocalStorage());
+    } else {
+      loadFromLocalStorage();
     }
   }, []);
 

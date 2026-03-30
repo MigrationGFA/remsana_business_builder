@@ -1,0 +1,95 @@
+{
+  "info": {
+    "name": "addon-onboarding",
+    "description": "Postman tests for addon-onboarding: Onboarding (business questionnaire) endpoints. Requires SME Bearer token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "core_base", "value": "http://localhost:8080"},
+    {"key": "sme_access_token", "value": ""}
+  ],
+  "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{sme_access_token}}"}]},
+  "item": [
+    {
+      "name": "Get Onboarding Progress",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/onboarding",
+        "description": "Get current user's onboarding progress. Returns current_step, form_data, is_complete, completed_at.",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 2xx', () => pm.response.to.have.status(200));",
+                "pm.test('Response has onboarding fields', () => {",
+                "  const j = pm.response.json();",
+                "  pm.expect(j).to.have.property('current_step');",
+                "  pm.expect(j).to.have.property('is_complete');",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Update Onboarding",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{sme_access_token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"current_step\": 2,\n  \"form_data\": {\n    \"businessType\": \"sole_proprietorship\",\n    \"businessName\": \"My Business Ltd\",\n    \"tradingName\": \"MyBiz\",\n    \"businessPhone\": \"+2348012345678\",\n    \"businessEmail\": \"contact@mybiz.com\",\n    \"businessAddress\": \"123 Main St, Lagos\",\n    \"state\": \"Lagos\",\n    \"lga\": \"Ikeja\",\n    \"industry\": \"retail\",\n    \"revenue\": \"50-100k\",\n    \"employees\": \"1-5\",\n    \"goals\": [\"grow_revenue\", \"hire_staff\"]\n  }\n}"
+        },
+        "url": "{{core_base}}/api/v1/onboarding",
+        "description": "Save onboarding form data. current_step: 1-5. form_data: businessType, businessName, tradingName, businessPhone, businessEmail, businessAddress, state, lga, industry, revenue, employees, goals (array).",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 2xx', () => pm.response.to.have.status(200));",
+                "pm.test('Response has form_data', () => {",
+                "  const j = pm.response.json();",
+                "  pm.expect(j).to.have.property('form_data');",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Complete Onboarding",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Authorization", "value": "Bearer {{sme_access_token}}"}],
+        "url": "{{core_base}}/api/v1/onboarding/complete",
+        "description": "Mark onboarding as complete. Sets completed_at.",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Status is 2xx', () => pm.response.to.have.status(200));",
+                "pm.test('Onboarding complete', () => {",
+                "  const j = pm.response.json();",
+                "  pm.expect(j).to.have.property('is_complete');",
+                "  pm.expect(j.is_complete).to.be.true;",
+                "});"
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -7,17 +7,19 @@ import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft } from 'lucide-react';
 import { Button, Alert } from '../components/remsana';
 import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
-import { mfaSetup, mfaVerifySetup } from '../api/authApi';
+import { mfaSetup, mfaVerifySetup, mfaDisable } from '../api/authApi';
 import { hasBackend } from '../api/httpClient';
 
 export default function MfaSetupPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<'qr' | 'verify'>('qr');
+  const [step, setStep] = useState<'qr' | 'verify' | 'already_enabled'>('qr');
   const [qrUrl, setQrUrl] = useState('');
   const [secret, setSecret] = useState('');
   const [code, setCode] = useState('');
+  const [disablePassword, setDisablePassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (!localStorage.getItem('remsana_auth_token')) { navigate('/login', { replace: true }); return; }
@@ -31,7 +33,12 @@ export default function MfaSetupPage() {
         setSecret(data.secret);
         setStep('qr');
       } catch (err: any) {
-        setError(err?.response?.data?.message || err?.message || 'Failed to load setup.');
+        // If MFA is already enabled, backend may return 409 or similar
+        if (err?.response?.status === 409 || err?.response?.data?.message?.toLowerCase().includes('already')) {
+          setStep('already_enabled');
+        } else {
+          setError(err?.response?.data?.message || err?.message || 'Failed to load setup.');
+        }
       } finally {
         setLoading(false);
       }
@@ -46,7 +53,8 @@ export default function MfaSetupPage() {
     setLoading(true);
     try {
       await mfaVerifySetup(code);
-      navigate('/dashboard', { replace: true });
+      setSuccess('Two-factor authentication enabled successfully!');
+      setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Invalid code. Please try again.');
     } finally {
@@ -73,7 +81,26 @@ export default function MfaSetupPage() {
           </div>
           <p className="text-[14px] text-[#6B7C7C] mb-6">Add an extra layer of security. Use an authenticator app (Google Authenticator, Authy, etc.) to scan the QR code.</p>
           {error && <Alert variant="error" message={error} className="mb-4" />}
-          {loading && !qrUrl ? <p className="text-[14px] text-[#6B7C7C]">Loading...</p> : step === 'qr' && qrUrl ? (
+          {success && <Alert variant="success" message={success} className="mb-4" />}
+          {loading && !qrUrl && step !== 'already_enabled' ? <p className="text-[14px] text-[#6B7C7C]">Loading...</p> : step === 'already_enabled' ? (
+            <div className="space-y-4">
+              <Alert variant="info" message="Two-factor authentication is already enabled on your account." className="mb-2" />
+              <p className="text-[14px] text-[#6B7C7C]">To disable 2FA, enter your account password below:</p>
+              <input type="password" value={disablePassword} onChange={(e) => setDisablePassword(e.target.value)} placeholder="Enter your password"
+                className="w-full h-[48px] rounded-lg border border-[#6B7C7C]/30 px-4 focus:outline-none focus:ring-2 focus:ring-[#1C1C8B]" />
+              <Button onClick={async () => {
+                if (!disablePassword) { setError('Please enter your password'); return; }
+                setLoading(true); setError(null);
+                try {
+                  await mfaDisable(disablePassword);
+                  setSuccess('Two-factor authentication has been disabled.');
+                  setTimeout(() => navigate('/dashboard', { replace: true }), 1500);
+                } catch (err: any) {
+                  setError(err?.response?.data?.message || err?.message || 'Failed to disable 2FA. Check your password.');
+                } finally { setLoading(false); }
+              }} loading={loading} disabled={!disablePassword} className="w-full" variant="danger">Disable 2FA</Button>
+            </div>
+          ) : step === 'qr' && qrUrl ? (
             <div className="space-y-4">
               <div className="flex justify-center p-4 bg-gray-50 rounded-lg">
                 <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrUrl)}`} alt="QR code" className="w-[200px] h-[200px]" />
