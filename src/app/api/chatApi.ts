@@ -40,7 +40,9 @@ export interface ConversationWithMessages extends ChatConversation {
 export async function getConversations(): Promise<ChatConversation[]> {
   if (!hasEngagementService()) return [];
   try {
+    console.log('[Chat] ➡️ GET /conversations');
     const { data } = await engagementApi.get<ChatConversation[]>('/conversations');
+    console.log('[Chat] ⬅️ GET /conversations response:', data);
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Failed to fetch conversations:', error);
@@ -52,9 +54,11 @@ export async function getConversations(): Promise<ChatConversation[]> {
  * Create or get existing conversation
  */
 export async function createConversation(ticketId?: string): Promise<ChatConversation> {
+  console.log('[Chat] ➡️ POST /conversations', { ticketId });
   const { data } = await engagementApi.post<ChatConversation>('/conversations', {
     ...(ticketId ? { ticket_id: ticketId } : {}),
   });
+  console.log('[Chat] ⬅️ POST /conversations response:', data);
   return data;
 }
 
@@ -64,9 +68,11 @@ export async function createConversation(ticketId?: string): Promise<ChatConvers
 export async function getConversation(conversationId: string): Promise<ConversationWithMessages | null> {
   if (!hasEngagementService()) return null;
   try {
+    console.log('[Chat] ➡️ GET /chat/conversations/' + conversationId);
     const { data } = await engagementApi.get<ConversationWithMessages>(
       `/chat/conversations/${encodeURIComponent(conversationId)}`,
     );
+    console.log('[Chat] ⬅️ GET /chat/conversations/' + conversationId + ' response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch conversation:', error);
@@ -78,10 +84,12 @@ export async function getConversation(conversationId: string): Promise<Conversat
  * Send a text message
  */
 export async function sendMessage(conversationId: string, content: string): Promise<ChatMessage> {
+  console.log('[Chat] ➡️ POST /chat/conversations/' + conversationId + '/messages', { content });
   const { data } = await engagementApi.post<ChatMessage>(
     `/chat/conversations/${encodeURIComponent(conversationId)}/messages`,
     { content, type: 'text' },
   );
+  console.log('[Chat] ⬅️ POST /chat/conversations/' + conversationId + '/messages response:', data);
   return data;
 }
 
@@ -89,6 +97,7 @@ export async function sendMessage(conversationId: string, content: string): Prom
  * Upload a file/image
  */
 export async function uploadFile(conversationId: string, file: File): Promise<ChatMessage> {
+  console.log('[Chat] ➡️ POST /chat/conversations/' + conversationId + '/upload (multipart)');
   const formData = new FormData();
   formData.append('file', file);
   const { data } = await engagementApi.post<ChatMessage>(
@@ -96,6 +105,7 @@ export async function uploadFile(conversationId: string, file: File): Promise<Ch
     formData,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
+  console.log('[Chat] ⬅️ POST /chat/conversations/' + conversationId + '/upload response:', data);
   return data;
 }
 
@@ -103,7 +113,9 @@ export async function uploadFile(conversationId: string, file: File): Promise<Ch
  * Mark a message as read
  */
 export async function markMessageRead(conversationId: string, messageId: string): Promise<void> {
+  console.log('[Chat] ➡️ PATCH /chat/conversations/' + conversationId + '/messages/' + messageId + '/read');
   await engagementApi.patch(
     `/chat/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/read`,
   );
+  console.log('[Chat] ⬅️ PATCH mark read success');
 }

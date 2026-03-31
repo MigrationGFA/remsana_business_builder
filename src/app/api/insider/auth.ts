@@ -53,11 +53,13 @@ export async function insiderLogin(params: LoginParams): Promise<InsiderAuthToke
   // Try real API first
   if (hasBackend()) {
     try {
+      console.log('[InsiderAuth] ➡️ POST /auth/login', { email, role });
       const response = await insiderApi.post('/auth/login', {
         email,
         password,
         role,
       });
+      console.log('[InsiderAuth] ⬅️ POST /auth/login response:', response.data);
       const tokens: InsiderAuthTokens = {
         access_token: response.data.access_token,
         refresh_token: response.data.refresh_token,
@@ -105,7 +107,9 @@ export async function insiderVerifyMfa(code: string): Promise<void> {
   }
 
   try {
+    console.log('[InsiderAuth] ➡️ POST /auth/verify-mfa');
     await insiderApi.post('/auth/verify-mfa', { code });
+    console.log('[InsiderAuth] ⬅️ POST /auth/verify-mfa success');
   } catch (error: any) {
     throw new Error(error.response?.data?.message || 'Invalid MFA code');
   }
@@ -114,7 +118,9 @@ export async function insiderVerifyMfa(code: string): Promise<void> {
 export async function insiderLogout(): Promise<void> {
   if (hasBackend()) {
     try {
+      console.log('[InsiderAuth] ➡️ POST /auth/logout');
       await insiderApi.post('/auth/logout');
+      console.log('[InsiderAuth] ⬅️ POST /auth/logout success');
     } catch (error) {
       // Continue with logout even if API call fails
       console.warn('Logout API call failed:', error);

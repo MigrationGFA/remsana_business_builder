@@ -19,7 +19,9 @@ export type { ChatConversation, ChatMessage, ConversationWithMessages };
 export async function getAdminConversations(): Promise<ChatConversation[]> {
   if (!hasEngagementService()) return [];
   try {
+    console.log('[InsiderChat] ➡️ GET /chat/admin/conversations');
     const { data } = await engagementInsiderApi.get<ChatConversation[]>('/chat/admin/conversations');
+    console.log('[InsiderChat] ⬅️ GET /chat/admin/conversations response:', data);
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Failed to fetch admin conversations:', error);
@@ -33,9 +35,11 @@ export async function getAdminConversations(): Promise<ChatConversation[]> {
 export async function getAdminConversation(conversationId: string): Promise<ConversationWithMessages | null> {
   if (!hasEngagementService()) return null;
   try {
+    console.log('[InsiderChat] ➡️ GET /chat/admin/conversations/' + conversationId);
     const { data } = await engagementInsiderApi.get<ConversationWithMessages>(
       `/chat/admin/conversations/${encodeURIComponent(conversationId)}`,
     );
+    console.log('[InsiderChat] ⬅️ GET /chat/admin/conversations/' + conversationId + ' response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch admin conversation:', error);
@@ -47,10 +51,12 @@ export async function getAdminConversation(conversationId: string): Promise<Conv
  * Send admin reply
  */
 export async function sendAdminMessage(conversationId: string, content: string): Promise<ChatMessage> {
+  console.log('[InsiderChat] ➡️ POST /chat/admin/conversations/' + conversationId + '/messages', { content });
   const { data } = await engagementInsiderApi.post<ChatMessage>(
     `/chat/admin/conversations/${encodeURIComponent(conversationId)}/messages`,
     { content, type: 'text' },
   );
+  console.log('[InsiderChat] ⬅️ POST admin message response:', data);
   return data;
 }
 
@@ -58,6 +64,7 @@ export async function sendAdminMessage(conversationId: string, content: string):
  * Upload file (admin)
  */
 export async function uploadAdminFile(conversationId: string, file: File): Promise<ChatMessage> {
+  console.log('[InsiderChat] ➡️ POST /chat/admin/conversations/' + conversationId + '/upload (multipart)');
   const formData = new FormData();
   formData.append('file', file);
   const { data } = await engagementInsiderApi.post<ChatMessage>(
@@ -65,6 +72,7 @@ export async function uploadAdminFile(conversationId: string, file: File): Promi
     formData,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
+  console.log('[InsiderChat] ⬅️ POST admin upload response:', data);
   return data;
 }
 
@@ -72,7 +80,9 @@ export async function uploadAdminFile(conversationId: string, file: File): Promi
  * Mark user message as read (admin)
  */
 export async function markAdminMessageRead(conversationId: string, messageId: string): Promise<void> {
+  console.log('[InsiderChat] ➡️ PATCH /chat/admin/conversations/' + conversationId + '/messages/' + messageId + '/read');
   await engagementInsiderApi.patch(
     `/chat/admin/conversations/${encodeURIComponent(conversationId)}/messages/${encodeURIComponent(messageId)}/read`,
   );
+  console.log('[InsiderChat] ⬅️ PATCH admin mark read success');
 }

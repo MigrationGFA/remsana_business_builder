@@ -33,6 +33,7 @@ api.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
   if (import.meta.env.DEV) {
+    console.log('🔑 AUTH TOKEN:', token);
     const baseURL = config.baseURL || '';
     const path = config.url || '';
     console.log('➡️ API request:', { method: config.method?.toUpperCase(), url: `${baseURL}${path}` });

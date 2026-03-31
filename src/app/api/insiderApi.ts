@@ -15,8 +15,10 @@ import type {
 export async function getAdminQuickStats(): Promise<QuickStats | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/dashboard/summary (quickStats)');
     const response = await api.get('/insider/admin/dashboard/summary');
     const data = response.data;
+    console.log('[Insider] ⬅️ GET /insider/admin/dashboard/summary response:', data);
     if (data) {
       return {
         activeUsers: data.activeUsers ?? 0,
@@ -38,7 +40,9 @@ export async function getAdminPlatformHealth(): Promise<PlatformHealth | null> {
   }
 
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/system/health');
     const response = await api.get('/insider/admin/system/health');
+    console.log('[Insider] ⬅️ GET /insider/admin/system/health response:', response.data);
     return {
       payment: { status: 'OPERATIONAL', errors: 0, successRate: 100 },
       cac: { status: response.data.externalServices?.cac || 'CONNECTED', lastCheck: '2m ago' },
@@ -64,9 +68,11 @@ export async function getAdminUsers(page: number = 1, limit: number = 50): Promi
   }
 
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/users', { page, limit });
     const response = await api.get('/insider/admin/users', {
       params: { page, limit },
     });
+    console.log('[Insider] ⬅️ GET /insider/admin/users response:', response.data);
     return {
       data: response.data.data.map((u: any) => ({
         id: u.id,
@@ -89,9 +95,11 @@ export async function getAdminAuditLogs(limit: number = 100): Promise<AuditLogRo
   }
 
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/audit-logs', { limit });
     const response = await api.get('/insider/admin/audit-logs', {
       params: { limit },
     });
+    console.log('[Insider] ⬅️ GET /insider/admin/audit-logs response:', response.data);
     return response.data.data.map((log: any) => ({
       id: log.id,
       timestamp: new Date(log.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
@@ -111,7 +119,9 @@ export async function getAdminAlerts(): Promise<AlertItem[] | null> {
   }
 
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/alerts');
     const response = await api.get('/insider/admin/alerts');
+    console.log('[Insider] ⬅️ GET /insider/admin/alerts response:', response.data);
     const data = response.data?.data ?? response.data ?? [];
 
     if (!Array.isArray(data)) {
@@ -141,8 +151,10 @@ export async function getAnalystKpis(): Promise<AnalystKpis | null> {
   }
 
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/metrics/summary');
     const response = await api.get('/insider/analyst/metrics/summary');
     const data = response.data;
+    console.log('[Insider] ⬅️ GET /insider/analyst/metrics/summary response:', data);
     
     return {
       totalUsers: data.totalUsers || 0,
@@ -174,7 +186,9 @@ export async function getAnalystLearningSummary(): Promise<any> {
   }
 
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/learning/summary');
     const response = await api.get('/insider/analyst/learning/summary');
+    console.log('[Insider] ⬅️ GET /insider/analyst/learning/summary response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch learning summary:', error);
@@ -190,7 +204,9 @@ export async function getAnalystLearningSummary(): Promise<any> {
 export async function getAdminFinancesSummary(): Promise<any> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/finances/summary');
     const { data } = await api.get('/insider/admin/finances/summary');
+    console.log('[Insider] ⬅️ GET /insider/admin/finances/summary response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch finances summary:', error);
@@ -208,7 +224,9 @@ export async function getAdminTransactions(params?: {
 }): Promise<{ data: any[]; pagination?: any } | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/transactions', params);
     const { data } = await api.get('/insider/admin/transactions', { params });
+    console.log('[Insider] ⬅️ GET /insider/admin/transactions response:', data);
     return { data: data.data ?? data ?? [], pagination: data.pagination };
   } catch (error) {
     console.error('Failed to fetch transactions:', error);
@@ -220,7 +238,9 @@ export async function getAdminTransactions(params?: {
  * Refund a transaction
  */
 export async function refundTransaction(txnId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/transactions/' + txnId + '/refund', { reason });
   const { data } = await api.post(`/insider/admin/transactions/${encodeURIComponent(txnId)}/refund`, { reason });
+  console.log('[Insider] ⬅️ POST refund response:', data);
   return data;
 }
 
@@ -228,7 +248,9 @@ export async function refundTransaction(txnId: string, reason: string): Promise<
  * Override a transaction
  */
 export async function overrideTransaction(txnId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/transactions/' + txnId + '/override', { reason });
   const { data } = await api.post(`/insider/admin/transactions/${encodeURIComponent(txnId)}/override`, { reason });
+  console.log('[Insider] ⬅️ POST override response:', data);
   return data;
 }
 
@@ -241,7 +263,9 @@ export async function getAdminCacRegistrations(params?: {
 }): Promise<{ data: any[]; pagination?: any } | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/cac/registrations', params);
     const { data } = await api.get('/insider/admin/cac/registrations', { params });
+    console.log('[Insider] ⬅️ GET /insider/admin/cac/registrations response:', data);
     return { data: data.data ?? data ?? [], pagination: data.pagination };
   } catch (error) {
     console.error('Failed to fetch CAC registrations:', error);
@@ -255,7 +279,9 @@ export async function getAdminCacRegistrations(params?: {
 export async function getAdminCacRegistration(regId: string): Promise<any> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/cac/registrations/' + regId);
     const { data } = await api.get(`/insider/admin/cac/registrations/${encodeURIComponent(regId)}`);
+    console.log('[Insider] ⬅️ GET /insider/admin/cac/registrations/' + regId + ' response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch CAC registration:', error);
@@ -267,7 +293,9 @@ export async function getAdminCacRegistration(regId: string): Promise<any> {
  * Submit CAC registration to CAC
  */
 export async function submitCacToCac(regId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/cac/registrations/' + regId + '/submit-to-cac', { reason });
   const { data } = await api.post(`/insider/admin/cac/registrations/${encodeURIComponent(regId)}/submit-to-cac`, { reason });
+  console.log('[Insider] ⬅️ POST submit-to-cac response:', data);
   return data;
 }
 
@@ -275,7 +303,9 @@ export async function submitCacToCac(regId: string, reason: string): Promise<any
  * Approve CAC registration
  */
 export async function approveCacRegistration(regId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/cac/registrations/' + regId + '/approve', { reason });
   const { data } = await api.post(`/insider/admin/cac/registrations/${encodeURIComponent(regId)}/approve`, { reason });
+  console.log('[Insider] ⬅️ POST approve response:', data);
   return data;
 }
 
@@ -283,7 +313,9 @@ export async function approveCacRegistration(regId: string, reason: string): Pro
  * Reject CAC registration
  */
 export async function rejectCacRegistration(regId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/cac/registrations/' + regId + '/reject', { reason });
   const { data } = await api.post(`/insider/admin/cac/registrations/${encodeURIComponent(regId)}/reject`, { reason });
+  console.log('[Insider] ⬅️ POST reject response:', data);
   return data;
 }
 
@@ -297,7 +329,9 @@ export async function getAdminVideos(params?: {
 }): Promise<{ data: any[]; pagination?: any } | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/content/videos', params);
     const { data } = await api.get('/insider/admin/content/videos', { params });
+    console.log('[Insider] ⬅️ GET /insider/admin/content/videos response:', data);
     return { data: data.data ?? data ?? [], pagination: data.pagination };
   } catch (error) {
     console.error('Failed to fetch videos:', error);
@@ -309,7 +343,9 @@ export async function getAdminVideos(params?: {
  * Publish a video
  */
 export async function publishVideo(videoId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/content/videos/' + videoId + '/publish', { reason });
   const { data } = await api.post(`/insider/admin/content/videos/${encodeURIComponent(videoId)}/publish`, { reason });
+  console.log('[Insider] ⬅️ POST publish response:', data);
   return data;
 }
 
@@ -317,7 +353,9 @@ export async function publishVideo(videoId: string, reason: string): Promise<any
  * Unpublish a video
  */
 export async function unpublishVideo(videoId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/content/videos/' + videoId + '/unpublish', { reason });
   const { data } = await api.post(`/insider/admin/content/videos/${encodeURIComponent(videoId)}/unpublish`, { reason });
+  console.log('[Insider] ⬅️ POST unpublish response:', data);
   return data;
 }
 
@@ -329,7 +367,9 @@ export async function updateVideo(videoId: string, payload: {
   description?: string;
   reason: string;
 }): Promise<any> {
+  console.log('[Insider] ➡️ PUT /insider/admin/content/videos/' + videoId, payload);
   const { data } = await api.put(`/insider/admin/content/videos/${encodeURIComponent(videoId)}`, payload);
+  console.log('[Insider] ⬅️ PUT video response:', data);
   return data;
 }
 
@@ -339,7 +379,9 @@ export async function updateVideo(videoId: string, payload: {
 export async function getAdminDashboardSummary(): Promise<any> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/admin/dashboard/summary (full)');
     const { data } = await api.get('/insider/admin/dashboard/summary');
+    console.log('[Insider] ⬅️ GET /insider/admin/dashboard/summary response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch admin dashboard summary:', error);
@@ -351,7 +393,9 @@ export async function getAdminDashboardSummary(): Promise<any> {
  * Admin: Update user
  */
 export async function updateAdminUser(userId: string, payload: { full_name?: string; reason: string }): Promise<any> {
+  console.log('[Insider] ➡️ PUT /insider/admin/users/' + userId, payload);
   const { data } = await api.put(`/insider/admin/users/${encodeURIComponent(userId)}`, payload);
+  console.log('[Insider] ⬅️ PUT user response:', data);
   return data;
 }
 
@@ -359,7 +403,9 @@ export async function updateAdminUser(userId: string, payload: { full_name?: str
  * Admin: Reset user MFA
  */
 export async function resetUserMfa(userId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/users/' + userId + '/reset-mfa', { reason });
   const { data } = await api.post(`/insider/admin/users/${encodeURIComponent(userId)}/reset-mfa`, { reason });
+  console.log('[Insider] ⬅️ POST reset-mfa response:', data);
   return data;
 }
 
@@ -367,7 +413,9 @@ export async function resetUserMfa(userId: string, reason: string): Promise<any>
  * Admin: Suspend user
  */
 export async function suspendUser(userId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/users/' + userId + '/suspend', { reason });
   const { data } = await api.post(`/insider/admin/users/${encodeURIComponent(userId)}/suspend`, { reason });
+  console.log('[Insider] ⬅️ POST suspend response:', data);
   return data;
 }
 
@@ -375,7 +423,9 @@ export async function suspendUser(userId: string, reason: string): Promise<any> 
  * Admin: Ban user
  */
 export async function banUser(userId: string, reason: string): Promise<any> {
+  console.log('[Insider] ➡️ POST /insider/admin/users/' + userId + '/ban', { reason });
   const { data } = await api.post(`/insider/admin/users/${encodeURIComponent(userId)}/ban`, { reason });
+  console.log('[Insider] ⬅️ POST ban response:', data);
   return data;
 }
 
@@ -387,7 +437,9 @@ export async function banUser(userId: string, reason: string): Promise<any> {
 export async function getAnalystTotalUsers(): Promise<number | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/users/total');
     const { data } = await api.get('/insider/analyst/users/total');
+    console.log('[Insider] ⬅️ GET /insider/analyst/users/total response:', data);
     return data?.total ?? data ?? null;
   } catch (error) {
     console.error('Failed to fetch total users:', error);
@@ -401,7 +453,9 @@ export async function getAnalystTotalUsers(): Promise<number | null> {
 export async function getAnalystActiveUsers(): Promise<number | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/users/active');
     const { data } = await api.get('/insider/analyst/users/active');
+    console.log('[Insider] ⬅️ GET /insider/analyst/users/active response:', data);
     return data?.active ?? data ?? null;
   } catch (error) {
     console.error('Failed to fetch active users:', error);
@@ -415,7 +469,9 @@ export async function getAnalystActiveUsers(): Promise<number | null> {
 export async function getAnalystMrr(): Promise<number | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/revenue/mrr');
     const { data } = await api.get('/insider/analyst/revenue/mrr');
+    console.log('[Insider] ⬅️ GET /insider/analyst/revenue/mrr response:', data);
     return data?.mrr ?? data ?? null;
   } catch (error) {
     console.error('Failed to fetch MRR:', error);
@@ -429,7 +485,9 @@ export async function getAnalystMrr(): Promise<number | null> {
 export async function getAnalystArpu(): Promise<number | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/revenue/arpu');
     const { data } = await api.get('/insider/analyst/revenue/arpu');
+    console.log('[Insider] ⬅️ GET /insider/analyst/revenue/arpu response:', data);
     return data?.arpu ?? data ?? null;
   } catch (error) {
     console.error('Failed to fetch ARPU:', error);
@@ -443,7 +501,9 @@ export async function getAnalystArpu(): Promise<number | null> {
 export async function getAnalystChurnRate(): Promise<number | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/churn/rate');
     const { data } = await api.get('/insider/analyst/churn/rate');
+    console.log('[Insider] ⬅️ GET /insider/analyst/churn/rate response:', data);
     return data?.rate ?? data ?? null;
   } catch (error) {
     console.error('Failed to fetch churn rate:', error);
@@ -461,7 +521,9 @@ export async function getAnalystCohorts(params?: {
 }): Promise<any> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/cohorts', params);
     const { data } = await api.get('/insider/analyst/cohorts', { params });
+    console.log('[Insider] ⬅️ GET /insider/analyst/cohorts response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch cohorts:', error);
@@ -475,7 +537,9 @@ export async function getAnalystCohorts(params?: {
 export async function getAnalystRetentionFunnel(): Promise<any> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/retention/funnel');
     const { data } = await api.get('/insider/analyst/retention/funnel');
+    console.log('[Insider] ⬅️ GET /insider/analyst/retention/funnel response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch retention funnel:', error);
@@ -489,7 +553,9 @@ export async function getAnalystRetentionFunnel(): Promise<any> {
 export async function getAnalystRegistrationFunnel(): Promise<any> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/registration/funnel');
     const { data } = await api.get('/insider/analyst/registration/funnel');
+    console.log('[Insider] ⬅️ GET /insider/analyst/registration/funnel response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch registration funnel:', error);
@@ -506,10 +572,12 @@ export async function exportAnalystCsv(params?: {
 }): Promise<Blob | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/export/csv', params);
     const response = await api.get('/insider/analyst/export/csv', {
       params,
       responseType: 'blob',
     });
+    console.log('[Insider] ⬅️ GET /insider/analyst/export/csv response: Blob received');
     return response.data;
   } catch (error) {
     console.error('Failed to export CSV:', error);
@@ -526,10 +594,12 @@ export async function exportAnalystPdf(params?: {
 }): Promise<Blob | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Insider] ➡️ GET /insider/analyst/export/pdf', params);
     const response = await api.get('/insider/analyst/export/pdf', {
       params,
       responseType: 'blob',
     });
+    console.log('[Insider] ⬅️ GET /insider/analyst/export/pdf response: Blob received');
     return response.data;
   } catch (error) {
     console.error('Failed to export PDF:', error);

@@ -25,7 +25,9 @@ export const loansApi = {
     monthlyIncome: string;
     employmentType: string;
   }) => {
+    console.log('[Loans] ➡️ POST /loans/eligibility', data);
     const res = await api.post('/loans/eligibility', data);
+    console.log('[Loans] ⬅️ POST /loans/eligibility response:', res.data);
     return res.data as {
       eligible: boolean;
       maxLoanAmount: number;
@@ -36,7 +38,9 @@ export const loansApi = {
   },
 
   getOffers: async () => {
+    console.log('[Loans] ➡️ GET /loans/offers');
     const res = await api.get('/loans/offers');
+    console.log('[Loans] ⬅️ GET /loans/offers response:', res.data);
     return (res.data?.offers ?? []) as LoanOffer[];
   },
 
@@ -46,12 +50,16 @@ export const loansApi = {
     monthlyIncome?: string;
     employmentType?: string;
   }) => {
+    console.log('[Loans] ➡️ POST /loans/apply', data);
     const res = await api.post('/loans/apply', data);
+    console.log('[Loans] ⬅️ POST /loans/apply response:', res.data);
     return res.data as { applicationId: string; status: string; message: string };
   },
 
   getMyApplication: async () => {
+    console.log('[Loans] ➡️ GET /loans/me');
     const res = await api.get('/loans/me');
+    console.log('[Loans] ⬅️ GET /loans/me response:', res.data);
     return res.data?.application as {
       applicationId: string;
       status: string;

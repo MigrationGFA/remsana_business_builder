@@ -15,12 +15,14 @@ export interface RegisterResponse {
 }
 
 export async function register(payload: RegisterPayload): Promise<RegisterResponse> {
+  console.log('[Auth] ➡️ POST /auth/register', { email: payload.email });
   const response = await api.post<RegisterResponse>('/auth/register', {
     email: payload.email.trim(),
     password: payload.password,
     full_name: payload.full_name?.trim() || undefined,
     phone_number: payload.phone_number?.trim() || undefined,
   });
+  console.log('[Auth] ⬅️ POST /auth/register response:', response.data);
   return response.data;
 }
 
@@ -29,8 +31,10 @@ export function canUseRegistrationApi(): boolean {
 }
 
 export async function forgotPassword(email: string): Promise<void> {
+  console.log('[Auth] ➡️ POST /auth/forgot-password', { email });
   try {
     await api.post('/auth/forgot-password', { email: email.trim() });
+    console.log('[Auth] ⬅️ POST /auth/forgot-password success');
   } catch (error: any) {
     // Handle specific error cases
     if (error?.response?.status === 429) {
@@ -47,8 +51,10 @@ export async function forgotPassword(email: string): Promise<void> {
 }
 
 export async function resetPassword(token: string, password: string): Promise<void> {
+  console.log('[Auth] ➡️ POST /auth/reset-password');
   try {
     await api.post('/auth/reset-password', { token, password });
+    console.log('[Auth] ⬅️ POST /auth/reset-password success');
   } catch (error: any) {
     // Handle specific error cases
     if (error?.response?.status === 400) {
@@ -73,12 +79,16 @@ export async function resetPassword(token: string, password: string): Promise<vo
 
 export interface MfaSetupResponse { secret: string; qr_url: string; }
 export async function mfaSetup(): Promise<MfaSetupResponse> {
+  console.log('[Auth] ➡️ POST /auth/mfa/setup');
   const response = await api.post<MfaSetupResponse>('/auth/mfa/setup');
+  console.log('[Auth] ⬅️ POST /auth/mfa/setup response:', response.data);
   return response.data;
 }
 
 export async function mfaVerifySetup(code: string): Promise<void> {
+  console.log('[Auth] ➡️ POST /auth/mfa/verify-setup');
   await api.post('/auth/mfa/verify-setup', { code });
+  console.log('[Auth] ⬅️ POST /auth/mfa/verify-setup success');
 }
 
 export interface MfaChallengeResponse {
@@ -88,10 +98,14 @@ export interface MfaChallengeResponse {
   user: { id: string; email: string; full_name?: string; subscription_tier: string };
 }
 export async function mfaChallenge(challengeToken: string, code: string): Promise<MfaChallengeResponse> {
+  console.log('[Auth] ➡️ POST /auth/mfa/challenge');
   const response = await api.post<MfaChallengeResponse>('/auth/mfa/challenge', { challenge_token: challengeToken, code });
+  console.log('[Auth] ⬅️ POST /auth/mfa/challenge response:', response.data);
   return response.data;
 }
 
 export async function mfaDisable(password: string): Promise<void> {
+  console.log('[Auth] ➡️ POST /auth/mfa/disable');
   await api.post('/auth/mfa/disable', { password });
+  console.log('[Auth] ⬅️ POST /auth/mfa/disable success');
 }

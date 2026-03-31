@@ -106,7 +106,9 @@ export async function getProgramme(code: string = '100DAY_SME'): Promise<Learnin
   }
 
   try {
+    console.log('[Learning] ➡️ GET /learning/programmes/' + code);
     const response = await api.get<LearningProgramme>(`/learning/programmes/${code}`);
+    console.log('[Learning] ⬅️ GET /learning/programmes/' + code + ' response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch programme:', error);
@@ -123,7 +125,9 @@ export async function getLesson(lessonId: string): Promise<LearningLesson | null
   }
 
   try {
+    console.log('[Learning] ➡️ GET /learning/lessons/' + lessonId);
     const response = await api.get<LearningLesson>(`/learning/lessons/${lessonId}`);
+    console.log('[Learning] ⬅️ GET /learning/lessons/' + lessonId + ' response:', response.data, '| video_url:', response.data?.video_url);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch lesson:', error);
@@ -140,7 +144,9 @@ export async function getLearningProgress(): Promise<LearningProgress | null> {
   }
 
   try {
+    console.log('[Learning] ➡️ GET /learning/progress/me');
     const response = await api.get<LearningProgress>('/learning/progress/me');
+    console.log('[Learning] ⬅️ GET /learning/progress/me response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Failed to fetch learning progress:', error);
@@ -157,7 +163,9 @@ export async function recordLessonView(lessonId: string): Promise<void> {
   }
 
   try {
+    console.log('[Learning] ➡️ POST /learning/lessons/' + lessonId + '/view');
     await api.post(`/learning/lessons/${lessonId}/view`);
+    console.log('[Learning] ⬅️ POST /learning/lessons/' + lessonId + '/view success');
   } catch (error) {
     console.error('Failed to record lesson view:', error);
   }
@@ -176,10 +184,12 @@ export async function recordVideoProgress(
   }
 
   try {
+    console.log('[Learning] ➡️ POST /learning/lessons/' + lessonId + '/video-progress', { watchedSeconds, durationSeconds });
     await api.post(`/learning/lessons/${lessonId}/video-progress`, {
       watchedSeconds,
       durationSeconds,
     });
+    console.log('[Learning] ⬅️ POST /learning/lessons/' + lessonId + '/video-progress success');
   } catch (error) {
     console.error('Failed to record video progress:', error);
   }
@@ -198,10 +208,12 @@ export async function submitQuizAttempt(
   }
 
   try {
+    console.log('[Learning] ➡️ POST /learning/quizzes/' + quizId + '/attempt', { answerCount: Object.keys(answers).length, timeSpent });
     const response = await api.post(`/learning/quizzes/${quizId}/attempt`, {
       answers,
       timeSpent,
     });
+    console.log('[Learning] ⬅️ POST /learning/quizzes/' + quizId + '/attempt response:', response.data);
     return response.data;
   } catch (error: any) {
     if (error?.response?.status === 403) {
@@ -220,7 +232,9 @@ export async function markLessonComplete(lessonId: string): Promise<void> {
   if (!hasBackend()) return;
 
   try {
+    console.log('[Learning] ➡️ POST /learning/lessons/' + lessonId + '/complete');
     await api.post(`/learning/lessons/${lessonId}/complete`);
+    console.log('[Learning] ⬅️ POST /learning/lessons/' + lessonId + '/complete success');
   } catch (error) {
     console.error('Failed to mark lesson complete:', error);
   }
@@ -238,7 +252,9 @@ export async function getCertificates(): Promise<Array<{
 }>> {
   if (!hasBackend()) return [];
   try {
+    console.log('[Learning] ➡️ GET /learning/certificates');
     const { data } = await api.get('/learning/certificates');
+    console.log('[Learning] ⬅️ GET /learning/certificates response:', data);
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Failed to fetch certificates:', error);
@@ -256,7 +272,9 @@ export async function issueCertificate(params: {
 }): Promise<{ id: string; title: string; issued_at: string; pdf_url?: string } | null> {
   if (!hasBackend()) return null;
   try {
+    console.log('[Learning] ➡️ POST /learning/certificates', params);
     const { data } = await api.post('/learning/certificates', params);
+    console.log('[Learning] ⬅️ POST /learning/certificates response:', data);
     return data;
   } catch (error) {
     console.error('Failed to issue certificate:', error);

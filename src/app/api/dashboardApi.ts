@@ -7,7 +7,9 @@ import { api } from './httpClient';
 
 export const dashboardApi = {
   getMe: async () => {
+    console.log('[Dashboard] ➡️ GET /dashboard/me');
     const res = await api.get('/dashboard/me');
+    console.log('[Dashboard] ⬅️ GET /dashboard/me response:', res.data);
     return res.data as {
       registrationStatus: Record<string, unknown>;
       learningProgress: Record<string, unknown>;

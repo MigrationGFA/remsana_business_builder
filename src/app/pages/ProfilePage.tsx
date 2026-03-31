@@ -83,8 +83,26 @@ export default function ProfilePage() {
     setError('');
     try {
       const updated = await upgradeSubscription(tier);
-      setSubscription(updated);
-      setSuccess(`Upgraded to ${tier} successfully`);
+      // Backend returns {message: "Subscription upgrade initiated"} — may not include tier/status yet.
+      // Set subscription state to reflect the requested upgrade immediately.
+      setSubscription({
+        ...updated,
+        id: updated?.id || subscription?.id || '',
+        user_id: updated?.user_id || subscription?.user_id || '',
+        tier: updated?.tier || tier,
+        status: updated?.status || 'active',
+      });
+      // Also refresh profile to reflect new tier
+      const refreshedProfile = await getUserProfile();
+      if (refreshedProfile) {
+        // If backend hasn't updated yet, apply the requested tier locally
+        if (refreshedProfile.subscription_tier === 'free' || !refreshedProfile.subscription_tier) {
+          refreshedProfile.subscription_tier = tier;
+          refreshedProfile.subscription_status = 'active';
+        }
+        setProfile(refreshedProfile);
+      }
+      setSuccess(`Upgraded to ${tier.charAt(0).toUpperCase() + tier.slice(1)} successfully!`);
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Failed to upgrade');
     } finally {
@@ -148,8 +166,18 @@ export default function ProfilePage() {
             {(profile?.full_name?.[0] || profile?.email?.[0] || 'U').toUpperCase()}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">{profile?.full_name || fullName || 'Your Profile'}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold text-white">{profile?.full_name || fullName || 'Your Profile'}</h2>
+              {profile?.subscription_tier && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white/20 text-white/90">
+                  {profile.subscription_tier}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-white/60">{profile?.email || ''}</p>
+            {profile?.signup_date && (
+              <p className="text-xs text-white/40 mt-0.5">Member since {new Date(profile.signup_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}</p>
+            )}
           </div>
         </div>
       </section>
@@ -224,7 +252,7 @@ export default function ProfilePage() {
                   <h3 className="text-sm font-semibold text-gray-900">Subscription</h3>
                 </div>
 
-                {subscription ? (
+                {subscription && subscription.status !== 'none' ? (
                   <>
                     <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-50/50 rounded-xl mb-4">
                       <div>
@@ -238,9 +266,9 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-2.5">
-                      {subscription.tier !== 'premium' && (
-                        <Button size="sm" variant="primary" onClick={() => handleUpgrade('premium')} disabled={saving}>
-                          Upgrade to Premium
+                      {subscription.tier !== 'pro' && (
+                        <Button size="sm" variant="primary" onClick={() => handleUpgrade('pro')} disabled={saving}>
+                          Upgrade to Pro
                         </Button>
                       )}
                       {subscription.status === 'active' && (
@@ -251,9 +279,33 @@ export default function ProfilePage() {
                     </div>
                   </>
                 ) : (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-400">No subscription information available.</p>
-                  </div>
+                  <>
+                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-50/50 rounded-xl mb-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          {profile?.subscription_tier ? `${profile.subscription_tier.charAt(0).toUpperCase() + profile.subscription_tier.slice(1)} Plan` : 'No Plan'}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">Status: <span className="capitalize">{profile?.subscription_status || 'none'}</span></p>
+                      </div>
+                      <div className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                        profile?.subscription_status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {profile?.subscription_status === 'active' ? 'Active' : (profile?.subscription_status || 'None')}
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2.5">
+                      {profile?.subscription_tier !== 'pro' && (
+                        <Button size="sm" variant="primary" onClick={() => handleUpgrade('pro')} disabled={saving}>
+                          Upgrade to Pro
+                        </Button>
+                      )}
+                      {profile?.subscription_status === 'active' && profile?.subscription_tier === 'pro' && (
+                        <Button size="sm" variant="secondary" onClick={() => setShowCancelModal(true)} disabled={saving}>
+                          Cancel Subscription
+                        </Button>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -267,9 +319,18 @@ export default function ProfilePage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">MFA Security</p>
-                    <p className="text-[11px] text-gray-400">Manage two-factor authentication</p>
+                    <p className="text-[11px] text-gray-400">
+                      {profile?.mfa_enabled ? 'Two-factor authentication is enabled' : 'Enable two-factor authentication for added security'}
+                    </p>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-gray-300" />
+                  <div className="flex items-center gap-2">
+                    {profile?.mfa_enabled ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-50 text-green-600">ON</span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-600">OFF</span>
+                    )}
+                    <ChevronRight className="w-4 h-4 text-gray-300" />
+                  </div>
                 </button>
                 <button onClick={() => navigate('/dashboard')} className="w-full flex items-center gap-3 px-5 py-4 hover:bg-gray-50/50 transition-colors text-left">
                   <div className="w-9 h-9 rounded-xl bg-[#218D8D]/10 flex items-center justify-center flex-shrink-0">

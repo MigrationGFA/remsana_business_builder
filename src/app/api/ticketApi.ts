@@ -39,7 +39,9 @@ export interface TicketWithReplies extends Ticket {
 export async function getMyTickets(): Promise<Ticket[]> {
   if (!hasEngagementService()) return [];
   try {
+    console.log('[Ticket] ➡️ GET /tickets');
     const { data } = await engagementApi.get<Ticket[]>('/tickets');
+    console.log('[Ticket] ⬅️ GET /tickets response:', data);
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Failed to fetch tickets:', error);
@@ -56,7 +58,9 @@ export async function createTicket(payload: {
   priority: 'low' | 'medium' | 'high';
   user_name?: string;
 }): Promise<Ticket> {
+  console.log('[Ticket] ➡️ POST /tickets', payload);
   const { data } = await engagementApi.post<Ticket>('/tickets', payload);
+  console.log('[Ticket] ⬅️ POST /tickets response:', data);
   return data;
 }
 
@@ -66,9 +70,11 @@ export async function createTicket(payload: {
 export async function getTicket(ticketId: string): Promise<TicketWithReplies | null> {
   if (!hasEngagementService()) return null;
   try {
+    console.log('[Ticket] ➡️ GET /tickets/' + ticketId);
     const { data } = await engagementApi.get<TicketWithReplies>(
       `/tickets/${encodeURIComponent(ticketId)}`,
     );
+    console.log('[Ticket] ⬅️ GET /tickets/' + ticketId + ' response:', data);
     return data;
   } catch (error) {
     console.error('Failed to fetch ticket:', error);
@@ -83,9 +89,11 @@ export async function addTicketReply(ticketId: string, payload: {
   message: string;
   user_name?: string;
 }): Promise<TicketReply> {
+  console.log('[Ticket] ➡️ POST /tickets/' + ticketId + '/replies', payload);
   const { data } = await engagementApi.post<TicketReply>(
     `/tickets/${encodeURIComponent(ticketId)}/replies`,
     payload,
   );
+  console.log('[Ticket] ⬅️ POST /tickets/' + ticketId + '/replies response:', data);
   return data;
 }

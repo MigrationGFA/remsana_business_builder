@@ -28,7 +28,9 @@ export async function getNavbarProfile(): Promise<NavbarProfile | null> {
   }
 
   try {
+    console.log('[Navbar] ➡️ GET /users/me');
     const response = await api.get('/users/me');
+    console.log('[Navbar] ⬅️ GET /users/me response:', response.data);
     const user = response.data?.user ?? response.data;
     return {
       name: user.full_name || user.name || user.email,
