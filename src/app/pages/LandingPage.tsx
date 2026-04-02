@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import './LandingPage.css';
+import remsanaIcon from '../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
 
 // SVG Icons for socials and arrows
 const ArrowRight = () => (
@@ -50,8 +51,8 @@ const LandingPage = () => {
   // Intersection Observer for scroll animations
   useEffect(() => {
     const observerOptions = {
-      threshold: 0.1,
-      rootMargin: '0px 0px -100px 0px'
+      threshold: 0.05,
+      rootMargin: '0px 0px -20px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -72,17 +73,18 @@ const LandingPage = () => {
   return (
     <div className="landing-page-wrapper">
       <div className="hero-section" id="hero">
+        <div className="hero-bg-image">
+          <img
+            src="/assets/hero-image.jpg"
+            alt="African entrepreneurs collaborating at a workspace"
+          />
+        </div>
         <div className="hero-accent"></div>
-
-        {/* Background Image & Overlay */}
-        <div className="hero-bg-image"></div>
-        <div className="hero-bg-overlay"></div>
 
         {/* Navbar */}
         <nav className="hero-navbar">
           <Link to="/" className="hero-nav-logo">
-            {/* Attempt to load Remsana logo or fallback */}
-            <img src="/assets/remsana-logo.png" alt="Remsana" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerHTML = 'Remsana'; }} />
+            <img src={remsanaIcon} alt="Remsana" style={{ height: 35, width: 'auto' }} />
           </Link>
 
           <div className="hero-nav-links">
@@ -116,7 +118,7 @@ const LandingPage = () => {
 
             <div className="hero-actions-row">
               <a href="/signup" className="btn-get-started">
-                Get Started Free
+                <button className="btn-get-started" onClick={() => navigate('/signup')}>Get Started Free</button> 
               </a>
               {/* <a href="#demo" className="btn-watch-demo">
                 <PlayIcon /> Watch Demo
@@ -140,7 +142,6 @@ const LandingPage = () => {
               </div>
             </div>
           </div>
-          {/* Right col is empty because the background image fills this space */}
         </main>
       </div>
 

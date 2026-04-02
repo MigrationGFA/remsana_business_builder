@@ -1,5 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { CheckCircle2, XCircle, RotateCcw, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, RotateCcw, ArrowRight, BookOpen, AlertTriangle, Play } from 'lucide-react';
 import { Card, CardContent, Button } from '../components/remsana';
 import { markLessonComplete, issueCertificate } from '../api/learningApi';
 
@@ -11,6 +12,9 @@ interface QuizResult {
   answers: Record<string, string>;
   questions: Array<{ id: string; question: string; correctAnswer: string }>;
   timeSpent: number;
+  attemptsUsed?: number;
+  attemptsRemaining?: number;
+  maxAttempts?: number;
 }
 
 export default function QuizResultsPage() {
@@ -36,6 +40,30 @@ export default function QuizResultsPage() {
 
   const { score, totalQuestions, correctAnswers, passed, timeSpent } = result;
   const passedFinal = passed ?? score >= 70;
+  const attemptsRemaining = result.attemptsRemaining ?? undefined;
+  const attemptsUsed = result.attemptsUsed ?? undefined;
+  const maxAttempts = result.maxAttempts ?? undefined;
+  const noAttemptsLeft = attemptsRemaining !== undefined && attemptsRemaining <= 0;
+
+  // Auto-mark lesson complete when quiz was passed, so progress updates
+  // regardless of which button the user clicks next
+  const autoCompleted = useRef(false);
+  useEffect(() => {
+    if (lessonId && passedFinal && !autoCompleted.current) {
+      autoCompleted.current = true;
+      markLessonComplete(lessonId).catch(() => {});
+    }
+  }, [lessonId, passedFinal]);
+
+  // Rewatch-before-retry: when failed with attempts remaining, require video rewatch
+  const [showRewatchModal, setShowRewatchModal] = useState(false);
+  useEffect(() => {
+    if (lessonId && !passedFinal && !noAttemptsLeft) {
+      // Flag that user must rewatch before retrying
+      sessionStorage.setItem(`remsana_quiz_rewatch_${lessonId}`, 'required');
+      setShowRewatchModal(true);
+    }
+  }, [lessonId, passedFinal, noAttemptsLeft]);
   const performanceLabel =
     score >= 90 ? 'EXCELLENT!' : score >= 80 ? 'GREAT!' : score >= 70 ? 'GOOD!' : 'NEEDS IMPROVEMENT';
 
@@ -213,21 +241,92 @@ export default function QuizResultsPage() {
               ✅ Mark Lesson Complete
             </Button>
           )}
+
+          {/* Attempts exhausted without passing */}
+          {!passedFinal && noAttemptsLeft && (
+            <Card className="border-amber-200 bg-amber-50 mb-3">
+              <CardContent className="p-5">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-amber-800 mb-1">All {maxAttempts} Attempts Used</h3>
+                    <p className="text-[13px] text-amber-700 mb-3">
+                      You've used all your quiz attempts for this lesson. Don't worry — you can rewatch the lesson video to strengthen your understanding, then continue with the next lesson.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => navigate(`/lesson/${lessonId}`)}
+                      >
+                        <BookOpen className="w-3.5 h-3.5 mr-1.5" />
+                        Rewatch Lesson
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => navigate('/learning')}
+                      >
+                        Continue Learning
+                        <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Attempts info when some remain */}
+          {!passedFinal && !noAttemptsLeft && attemptsRemaining !== undefined && (
+            <Card className="border-[#1C1C8B]/20 bg-[#f3f0fa] mb-1">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Play className="w-5 h-5 text-[#1C1C8B] flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-[14px] font-semibold text-[#1F2121] mb-1">
+                      Rewatch the lesson video before retrying
+                    </p>
+                    <p className="text-[13px] text-[#6B7C7C]">
+                      You have <span className="font-semibold text-[#1C1C8B]">{attemptsRemaining}</span> attempt{attemptsRemaining !== 1 ? 's' : ''} remaining. Watch the video again to review the material, then the quiz will unlock.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-full"
-              onClick={() => navigate(`/quiz/${lessonId}`)}
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Retake Quiz
-            </Button>
+            {!passedFinal && !noAttemptsLeft && (
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate(`/lesson/${lessonId}`)}
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Rewatch Lesson Video
+              </Button>
+            )}
+            {!noAttemptsLeft && passedFinal && (
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate(`/quiz/${lessonId}`)}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Retake Quiz
+              </Button>
+            )}
             <Button
               variant="primary"
               size="lg"
-              className="w-full"
-              onClick={() => navigate('/learning')}
+              className={noAttemptsLeft && !passedFinal ? 'w-full md:col-span-2' : 'w-full'}
+              onClick={async () => {
+                if (lessonId && passedFinal) await markLessonComplete(lessonId).catch(() => {});
+                navigate('/learning');
+              }}
             >
               Continue to Next Lesson
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -235,6 +334,45 @@ export default function QuizResultsPage() {
           </div>
         </div>
       </main>
+
+      {/* Rewatch modal overlay */}
+      {showRewatchModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-[#f3f0fa] flex items-center justify-center mx-auto mb-5">
+                <Play className="w-8 h-8 text-[#1C1C8B]" />
+              </div>
+              <h2 className="text-[20px] font-semibold text-[#1F2121] mb-2">Almost There!</h2>
+              <p className="text-[14px] text-[#6B7C7C] mb-2">
+                You scored <span className="font-semibold text-[#1C1C8B]">{score}%</span> — you need 70% to pass.
+              </p>
+              <p className="text-[14px] text-[#6B7C7C] mb-6">
+                Rewatch the lesson video to review the material, then you'll be able to retake the quiz. You have{' '}
+                <span className="font-semibold text-[#1C1C8B]">{attemptsRemaining}</span>{' '}
+                attempt{attemptsRemaining !== 1 ? 's' : ''} remaining.
+              </p>
+              <div className="space-y-3">
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full"
+                  onClick={() => { setShowRewatchModal(false); navigate(`/lesson/${lessonId}`); }}
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Rewatch Lesson Video
+                </Button>
+                <button
+                  onClick={() => setShowRewatchModal(false)}
+                  className="text-[13px] text-[#6B7C7C] hover:text-[#1F2121] transition-colors"
+                >
+                  Review my answers first
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

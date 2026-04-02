@@ -28,6 +28,10 @@ type LessonVideoPlayerProps = {
   videoUrl: string;
   /** From lesson row; used as durationSeconds for the API and 90% completion rule on the server */
   durationSec?: number;
+  /** Called with (watchedSeconds, durationSeconds) so the parent can render a live progress bar */
+  onProgress?: (watchedSeconds: number, durationSeconds: number) => void;
+  /** Called when video reaches ≥90% or finishes */
+  onComplete?: () => void;
 };
 
 /**
@@ -40,7 +44,7 @@ type LessonVideoPlayerProps = {
  *   while this embed is mounted as a proxy for "watched" seconds (capped at `durationSec`).
  *   Optional `postMessage` from Screenpal can be wired later in `useScreenpalPostMessageListener`.
  */
-export function LessonVideoPlayer({ lessonId, videoUrl, durationSec }: LessonVideoPlayerProps) {
+export function LessonVideoPlayer({ lessonId, videoUrl, durationSec, onProgress, onComplete }: LessonVideoPlayerProps) {
   const screenpal = isScreenpalLessonUrl(videoUrl);
 
   if (screenpal) {
@@ -49,12 +53,14 @@ export function LessonVideoPlayer({ lessonId, videoUrl, durationSec }: LessonVid
         lessonId={lessonId}
         iframeSrc={buildScreenpalIframeSrc(videoUrl)}
         durationSec={durationSec}
+        onProgress={onProgress}
+        onComplete={onComplete}
       />
     );
   }
 
   return (
-    <LessonMp4Video lessonId={lessonId} videoUrl={videoUrl} durationSec={durationSec} />
+    <LessonMp4Video lessonId={lessonId} videoUrl={videoUrl} durationSec={durationSec} onProgress={onProgress} onComplete={onComplete} />
   );
 }
 
@@ -63,10 +69,14 @@ function LessonScreenpalEmbed({
   lessonId,
   iframeSrc,
   durationSec,
+  onProgress,
+  onComplete,
 }: {
   lessonId: string;
   iframeSrc: string;
   durationSec?: number;
+  onProgress?: (watchedSeconds: number, durationSeconds: number) => void;
+  onComplete?: () => void;
 }) {
   // Max seconds we attribute to the learner (cannot exceed lesson duration when known)
   const durationCap =
@@ -102,10 +112,14 @@ function LessonScreenpalEmbed({
         !completionSentRef.current && maxWatchedRef.current >= durationCap * 0.9;
 
       if (throttleElapsed || hitCompletion) {
-        if (hitCompletion) completionSentRef.current = true;
+        if (hitCompletion) {
+          completionSentRef.current = true;
+          onComplete?.();
+        }
         lastPostAtRef.current = now;
         postProgress(maxWatchedRef.current, durationCap);
       }
+      onProgress?.(maxWatchedRef.current, durationCap);
     }, tickMs);
 
     return () => {
@@ -156,10 +170,14 @@ function LessonMp4Video({
   lessonId,
   videoUrl,
   durationSec,
+  onProgress,
+  onComplete,
 }: {
   lessonId: string;
   videoUrl: string;
   durationSec?: number;
+  onProgress?: (watchedSeconds: number, durationSeconds: number) => void;
+  onComplete?: () => void;
 }) {
   const maxWatchedRef = useRef(0);
   const lastPostAtRef = useRef(0);
@@ -180,6 +198,8 @@ function LessonMp4Video({
     const durationSeconds = durationFromEl ?? durationSec ?? 0;
     if (durationSeconds <= 0) return;
 
+    onProgress?.(Math.floor(maxWatchedRef.current), Math.floor(durationSeconds));
+
     const now = Date.now();
     if (now - lastPostAtRef.current < MP4_PROGRESS_POST_INTERVAL_MS) return;
     lastPostAtRef.current = now;
@@ -192,6 +212,7 @@ function LessonMp4Video({
     const durationSeconds = durationFromEl ?? durationSec ?? 0;
     const watched = Math.max(maxWatchedRef.current, durationSeconds);
     postProgress(Math.floor(watched), Math.floor(durationSeconds || watched));
+    onComplete?.();
   };
 
   return (

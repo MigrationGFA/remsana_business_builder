@@ -67,21 +67,32 @@ export interface LearningQuizOption {
   question_id: string;
   option_key: string;
   option_text: string;
-  is_correct: boolean;
+  is_correct: boolean | string | number;
   sort_order: number;
 }
 
 export interface LearningProgress {
+  programmeCode?: string;
   currentDay: number;
   totalDays: number;
+  totalLessons?: number;
   completionPercentage: number;
   lessonsCompleted: number;
   averageScore: number;
+  quizHighestScores?: Array<{
+    quiz_id: string;
+    lesson_id?: string;
+    highest_score: number;
+    passed: boolean;
+  }>;
   progress: Array<{
     user_id: string;
     lesson_id: string;
     status: 'not_started' | 'in_progress' | 'completed';
     video_progress_sec: number;
+    first_started_at?: string;
+    completed_at?: string;
+    last_event_at?: string;
   }>;
   quizAttempts: Array<{
     id: string;
@@ -109,7 +120,16 @@ export async function getProgramme(code: string = '100DAY_SME'): Promise<Learnin
     console.log('[Learning] ➡️ GET /learning/programmes/' + code);
     const response = await api.get<LearningProgramme>(`/learning/programmes/${code}`);
     console.log('[Learning] ⬅️ GET /learning/programmes/' + code + ' response:', response.data);
-    return response.data;
+    // Normalize has_quiz from string "0"/"1" to boolean for all nested lessons
+    const data = response.data;
+    if (data?.modules) {
+      for (const mod of data.modules) {
+        for (const lesson of mod.lessons ?? []) {
+          (lesson as any).has_quiz = String(lesson.has_quiz) === '1' || lesson.has_quiz === true;
+        }
+      }
+    }
+    return data;
   } catch (error) {
     console.error('Failed to fetch programme:', error);
     return null;
@@ -128,7 +148,12 @@ export async function getLesson(lessonId: string): Promise<LearningLesson | null
     console.log('[Learning] ➡️ GET /learning/lessons/' + lessonId);
     const response = await api.get<LearningLesson>(`/learning/lessons/${lessonId}`);
     console.log('[Learning] ⬅️ GET /learning/lessons/' + lessonId + ' response:', response.data, '| video_url:', response.data?.video_url);
-    return response.data;
+    // Normalize has_quiz from string "0"/"1" to boolean
+    const data = response.data;
+    if (data) {
+      (data as any).has_quiz = String(data.has_quiz) === '1' || data.has_quiz === true;
+    }
+    return data;
   } catch (error) {
     console.error('Failed to fetch lesson:', error);
     return null;
@@ -202,7 +227,7 @@ export async function submitQuizAttempt(
   quizId: string,
   answers: Record<string, string>,
   timeSpent: number
-): Promise<{ attemptId: string; score: number; passed: boolean; correctAnswers: number; totalQuestions: number } | null> {
+): Promise<{ attemptId: string; score: number; passed: boolean; correctAnswers: number; totalQuestions: number; attempts_used?: number; attempts_remaining?: number; max_attempts?: number } | null> {
   if (!hasBackend()) {
     return null;
   }

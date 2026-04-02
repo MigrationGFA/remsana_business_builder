@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, Play } from 'lucide-react';
+import { ArrowLeft, Download, Play, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, Button } from '../components/remsana';
-import { getLesson, recordLessonView } from '../api/learningApi';
+import { getLesson, recordLessonView, markLessonComplete } from '../api/learningApi';
 import type { LearningLesson } from '../api/learningApi';
 import { LessonVideoPlayer, isScreenpalLessonUrl } from '../components/learning/LessonVideoPlayer';
 
@@ -13,6 +13,12 @@ function formatDuration(sec?: number): string {
   return `${m} minute${m !== 1 ? 's' : ''} ${s} second${s !== 1 ? 's' : ''}`;
 }
 
+function formatTime(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 export default function LessonPlayerPage() {
   const navigate = useNavigate();
   const { lessonId } = useParams();
@@ -20,6 +26,9 @@ export default function LessonPlayerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [watchedSec, setWatchedSec] = useState(0);
+  const [totalSec, setTotalSec] = useState(0);
+  const [videoCompleted, setVideoCompleted] = useState(false);
 
   useEffect(() => {
     if (!lessonId) {
@@ -38,6 +47,30 @@ export default function LessonPlayerPage() {
       })
       .finally(() => setLoading(false));
   }, [lessonId]);
+
+  const handleVideoProgress = useCallback((watched: number, duration: number) => {
+    setWatchedSec(watched);
+    if (duration > 0) setTotalSec(duration);
+  }, []);
+
+  const handleVideoComplete = useCallback(() => {
+    setVideoCompleted(true);
+    // Auto-mark lesson complete if there's no quiz
+    if (lessonId && lesson && !lesson.has_quiz) {
+      markLessonComplete(lessonId);
+    }
+    // Clear rewatch requirement — user has rewatched the video after a failed quiz
+    if (lessonId) {
+      const flag = sessionStorage.getItem(`remsana_quiz_rewatch_${lessonId}`);
+      if (flag === 'required') {
+        sessionStorage.setItem(`remsana_quiz_rewatch_${lessonId}`, 'done');
+      }
+    }
+  }, [lessonId, lesson]);
+
+  // Check if the quiz was just unlocked by rewatching
+  const quizUnlocked = lessonId && videoCompleted
+    && sessionStorage.getItem(`remsana_quiz_rewatch_${lessonId}`) === 'done';
 
   const overviewLines = lesson?.overview
     ? lesson.overview.split('\n').filter((s) => s.trim())
@@ -112,6 +145,8 @@ export default function LessonPlayerPage() {
                       lessonId={lesson.id}
                       videoUrl={lesson.video_url}
                       durationSec={lesson.duration_sec}
+                      onProgress={handleVideoProgress}
+                      onComplete={handleVideoComplete}
                     />
                   ) : (
                     <div className="text-center">
@@ -126,14 +161,19 @@ export default function LessonPlayerPage() {
               <div className="p-4 bg-[#1F2121] text-white">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-4">
-                    <button className="hover:opacity-70">
+                    {videoCompleted ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-400" />
+                    ) : (
                       <Play className="w-5 h-5" />
-                    </button>
-                    <span className="text-[12px]">0:00</span>
+                    )}
+                    <span className="text-[12px]">{formatTime(watchedSec)}</span>
                     <div className="flex-1 h-1 bg-white/30 rounded-full">
-                      <div className="h-full bg-white w-[35%] rounded-full"></div>
+                      <div
+                        className="h-full bg-white rounded-full transition-all duration-300"
+                        style={{ width: `${totalSec > 0 ? Math.min((watchedSec / totalSec) * 100, 100) : 0}%` }}
+                      />
                     </div>
-                    <span className="text-[12px]">{duration}</span>
+                    <span className="text-[12px]">{totalSec > 0 ? formatTime(totalSec) : duration}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button className="text-[12px] hover:opacity-70">1.0x</button>
@@ -145,6 +185,39 @@ export default function LessonPlayerPage() {
             )}
           </CardContent>
         </Card>
+
+        {videoCompleted && !lesson.has_quiz && (
+          <Card className="mb-6 border-green-200 bg-green-50">
+            <CardContent className="p-4 flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-[14px] font-semibold text-green-800">Lesson Complete!</p>
+                <p className="text-[12px] text-green-600">Your progress has been saved.</p>
+              </div>
+              <Button variant="primary" size="sm" onClick={() => navigate('/learning')}>
+                Continue Learning
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {quizUnlocked && lesson.has_quiz && (
+          <Card className="mb-6 border-green-200 bg-green-50">
+            <CardContent className="p-4 flex items-center gap-3">
+              <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-[14px] font-semibold text-green-800">Quiz Unlocked!</p>
+                <p className="text-[12px] text-green-600">Great job rewatching the lesson. You're ready to retry the quiz.</p>
+              </div>
+              <Button variant="primary" size="sm" onClick={() => {
+                sessionStorage.removeItem(`remsana_quiz_rewatch_${lessonId}`);
+                navigate(`/quiz/${lessonId}`);
+              }}>
+                Retake Quiz
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="mb-6">
           <h1 className="text-[24px] font-semibold text-[#1F2121] mb-2">
@@ -235,11 +308,23 @@ export default function LessonPlayerPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="flex gap-3">
-                  <Button variant="secondary" size="lg" onClick={() => navigate('/learning')}>
-                    Back to Learning
-                  </Button>
-                </div>
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-[14px] font-semibold text-amber-800 mb-1">All Quiz Attempts Used</p>
+                        <p className="text-[13px] text-amber-700 mb-3">
+                          You've used all {lesson.quiz.max_attempts} attempts for this quiz. You can rewatch the video above to review the material, then continue with the next lesson.
+                        </p>
+                        <Button variant="primary" size="sm" onClick={() => navigate('/learning')}>
+                          Continue to Next Lesson
+                          <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </CardContent>
           </Card>

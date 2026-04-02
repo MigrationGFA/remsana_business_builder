@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Clock } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Clock, BookOpen, AlertTriangle, Play } from 'lucide-react';
 import { Card, CardContent, Button, LinearProgress } from '../components/remsana';
 import { getLesson, submitQuizAttempt } from '../api/learningApi';
 import type { LearningLesson, LearningQuizOption } from '../api/learningApi';
@@ -95,7 +95,7 @@ export default function QuizPage() {
       const result = await submitQuizAttempt(quizId, answers, timeSpent);
 
     const questionsForReview = questions.map((q) => {
-      const correctOpt = (q.options ?? []).find((o) => o.is_correct);
+      const correctOpt = (q.options ?? []).find((o) => String(o.is_correct) === '1' || o.is_correct === true);
       return {
         id: q.id,
         question: q.question_text,
@@ -113,6 +113,9 @@ export default function QuizPage() {
           answers,
           questions: questionsForReview,
           timeSpent,
+          attemptsUsed: result.attempts_used,
+          attemptsRemaining: result.attempts_remaining,
+          maxAttempts: result.max_attempts,
         },
       });
     } else {
@@ -125,6 +128,9 @@ export default function QuizPage() {
           answers,
           questions: questionsForReview,
           timeSpent,
+          attemptsUsed: attemptsUsed + 1,
+          attemptsRemaining: (attemptsRemaining ?? 1) - 1,
+          maxAttempts,
         },
       });
     }
@@ -186,6 +192,78 @@ export default function QuizPage() {
             <p className="text-[14px] text-[#6B7C7C] mb-4">No questions in this quiz.</p>
             <Button variant="primary" onClick={() => navigate(`/lesson/${lessonId}`)}>
               Back to Lesson
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (noAttemptsLeft) {
+    return (
+      <div className="min-h-screen bg-[#f3f0fa] flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-5">
+              <AlertTriangle className="w-8 h-8 text-amber-500" />
+            </div>
+            <h2 className="text-[20px] font-semibold text-[#1F2121] mb-2">All Quiz Attempts Used</h2>
+            <p className="text-[14px] text-[#6B7C7C] mb-1">
+              You've used all {maxAttempts} attempts for this quiz.
+            </p>
+            <p className="text-[14px] text-[#6B7C7C] mb-6">
+              Don't worry — you can still rewatch the lesson video to strengthen your understanding, and continue with the next lesson.
+            </p>
+            <div className="space-y-3">
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate(`/lesson/${lessonId}`)}
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Rewatch Lesson Video
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full"
+                onClick={() => navigate('/learning')}
+              >
+                Continue to Next Lesson
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Rewatch-before-retry gate: if user failed a quiz and hasn't rewatched the video yet
+  const rewatchFlag = lessonId ? sessionStorage.getItem(`remsana_quiz_rewatch_${lessonId}`) : null;
+  if (rewatchFlag === 'required' && !noAttemptsLeft) {
+    return (
+      <div className="min-h-screen bg-[#f3f0fa] flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-[#f3f0fa] flex items-center justify-center mx-auto mb-5">
+              <Play className="w-8 h-8 text-[#1C1C8B]" />
+            </div>
+            <h2 className="text-[20px] font-semibold text-[#1F2121] mb-2">Rewatch the Lesson First</h2>
+            <p className="text-[14px] text-[#6B7C7C] mb-2">
+              Before retaking the quiz, please rewatch the lesson video to review the material.
+            </p>
+            <p className="text-[14px] text-[#6B7C7C] mb-6">
+              You have <span className="font-semibold text-[#1C1C8B]">{attemptsRemaining ?? '?'}</span> attempt{attemptsRemaining !== 1 ? 's' : ''} remaining — the quiz will unlock once you've finished watching.
+            </p>
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={() => navigate(`/lesson/${lessonId}`)}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Go to Lesson Video
             </Button>
           </CardContent>
         </Card>

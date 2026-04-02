@@ -11,32 +11,23 @@
   flex-direction: column;
 }
 
-/* Background Image Layer */
+/* Hero Background Image — positioned absolutely, diagonal clip */
 .hero-bg-image {
   position: absolute;
   top: 0;
   right: 0;
-  width: 65%;
+  width: 55%;
   height: 100%;
-  background-color: #1a2942;
-  background-image: url('../../assets/hero-image.jpg'), url('https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=2070&auto=format&fit=crop');
-  /* Fallback to unsplash */
-  background-size: cover;
-  background-position: center left;
-  z-index: 0;
+  z-index: 2;
+  clip-path: polygon(12% 0%, 100% 0%, 100% 100%, 0% 100%);
+  overflow: hidden;
 }
 
-/* Blue Overlay Diagonal Layer */
-.hero-bg-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 60%;
+.hero-bg-image img {
+  width: 100%;
   height: 100%;
-  background-color: #0b1a3d;
-  /* Premium deep blue */
-  clip-path: polygon(0 0, 100% 0, 80% 100%, 0 100%);
-  z-index: 1;
+  object-fit: cover;
+  display: block;
 }
 
 /* Optional Accent Elements */
@@ -290,10 +281,6 @@
 
 /* Responsive Styles */
 @media screen and (max-width: 1024px) {
-  .hero-bg-overlay {
-    width: 65%;
-  }
-
   .hero-left-col {
     flex: 0 0 55%;
   }
@@ -312,14 +299,8 @@
     min-height: auto;
   }
 
-  .hero-bg-overlay {
-    width: 100%;
-    clip-path: none;
-    opacity: 0.92;
-  }
-
   .hero-bg-image {
-    width: 100%;
+    display: none;
   }
 
   .hero-navbar {
@@ -2152,8 +2133,8 @@ html {
 /* Base state for animated elements */
 .animate-on-scroll {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease-out, transform 0.35s ease-out;
 }
 
 /* Active state when element is in view */
@@ -2162,9 +2143,9 @@ html {
   transform: translateY(0);
 }
 
-/* Fade in animation for hero content */
+/* Hero content appears instantly - no fade delay */
 .hero-content {
-  animation: fadeInUp 1s ease-out;
+  /* animation removed to prevent flash of blank hero */
 }
 
 @keyframes fadeInUp {
