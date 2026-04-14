@@ -219,6 +219,7 @@ function LessonMp4Video({
     <video
       src={videoUrl}
       controls
+      preload="none"
       width="100%"
       className="w-full h-full max-h-full"
       onTimeUpdate={handleTimeUpdate}

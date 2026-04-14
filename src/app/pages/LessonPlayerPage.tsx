@@ -13,11 +13,7 @@ function formatDuration(sec?: number): string {
   return `${m} minute${m !== 1 ? 's' : ''} ${s} second${s !== 1 ? 's' : ''}`;
 }
 
-function formatTime(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+
 
 export default function LessonPlayerPage() {
   const navigate = useNavigate();
@@ -26,8 +22,7 @@ export default function LessonPlayerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [videoPlaying, setVideoPlaying] = useState(false);
-  const [watchedSec, setWatchedSec] = useState(0);
-  const [totalSec, setTotalSec] = useState(0);
+
   const [videoCompleted, setVideoCompleted] = useState(false);
 
   useEffect(() => {
@@ -48,10 +43,7 @@ export default function LessonPlayerPage() {
       .finally(() => setLoading(false));
   }, [lessonId]);
 
-  const handleVideoProgress = useCallback((watched: number, duration: number) => {
-    setWatchedSec(watched);
-    if (duration > 0) setTotalSec(duration);
-  }, []);
+
 
   const handleVideoComplete = useCallback(() => {
     setVideoCompleted(true);
@@ -145,7 +137,6 @@ export default function LessonPlayerPage() {
                       lessonId={lesson.id}
                       videoUrl={lesson.video_url}
                       durationSec={lesson.duration_sec}
-                      onProgress={handleVideoProgress}
                       onComplete={handleVideoComplete}
                     />
                   ) : (
@@ -157,32 +148,6 @@ export default function LessonPlayerPage() {
                 </div>
               )}
             </div>
-            {videoPlaying && (
-              <div className="p-4 bg-[#1F2121] text-white">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-4">
-                    {videoCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                    ) : (
-                      <Play className="w-5 h-5" />
-                    )}
-                    <span className="text-[12px]">{formatTime(watchedSec)}</span>
-                    <div className="flex-1 h-1 bg-white/30 rounded-full">
-                      <div
-                        className="h-full bg-white rounded-full transition-all duration-300"
-                        style={{ width: `${totalSec > 0 ? Math.min((watchedSec / totalSec) * 100, 100) : 0}%` }}
-                      />
-                    </div>
-                    <span className="text-[12px]">{totalSec > 0 ? formatTime(totalSec) : duration}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="text-[12px] hover:opacity-70">1.0x</button>
-                    <button className="text-[12px] hover:opacity-70">CC</button>
-                    <button className="text-[12px] hover:opacity-70">⛶</button>
-                  </div>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
