@@ -57,7 +57,7 @@ export default function LoginPage() {
       if (payload?.mfa_required && payload?.challenge_token) {
         localStorage.setItem('remsana_mfa_challenge', payload.challenge_token);
         setIsLoading(false);
-        navigate('/mfa-challenge');
+        navigate('/mfa-challenge', { state: { challengeToken: payload.challenge_token } });
         return;
       }
 
