@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { CheckCircle2, XCircle, RotateCcw, ArrowRight, BookOpen, AlertTriangle, Play } from 'lucide-react';
 import { Card, CardContent, Button } from '../components/remsana';
-import { markLessonComplete, issueCertificate } from '../api/learningApi';
+import { markLessonComplete, getProgramme, getNextLesson } from '../api/learningApi';
+import type { LearningLesson } from '../api/learningApi';
 
 interface QuizResult {
   score: number;
@@ -41,7 +42,6 @@ export default function QuizResultsPage() {
   const { score, totalQuestions, correctAnswers, passed, timeSpent } = result;
   const passedFinal = passed ?? score >= 70;
   const attemptsRemaining = result.attemptsRemaining ?? undefined;
-  const attemptsUsed = result.attemptsUsed ?? undefined;
   const maxAttempts = result.maxAttempts ?? undefined;
   const noAttemptsLeft = attemptsRemaining !== undefined && attemptsRemaining <= 0;
 
@@ -64,6 +64,29 @@ export default function QuizResultsPage() {
       setShowRewatchModal(true);
     }
   }, [lessonId, passedFinal, noAttemptsLeft]);
+
+  // Navigation logic: find next lesson
+  const [nextLesson, setNextLesson] = useState<LearningLesson | null>(null);
+  useEffect(() => {
+    getProgramme()
+      .then((prog) => {
+        if (prog && lessonId) {
+          const next = getNextLesson(prog, lessonId);
+          setNextLesson(next);
+        }
+      })
+      .catch((err) => console.error('Failed to load programme for navigation:', err));
+  }, [lessonId]);
+
+  const handleNextNavigation = async () => {
+    if (lessonId && passedFinal) await markLessonComplete(lessonId).catch(() => {});
+    if (nextLesson) {
+      navigate(`/lesson/${nextLesson.id}`);
+    } else {
+      navigate('/learning');
+    }
+  };
+
   const performanceLabel =
     score >= 90 ? 'EXCELLENT!' : score >= 80 ? 'GREAT!' : score >= 70 ? 'GOOD!' : 'NEEDS IMPROVEMENT';
 
@@ -78,18 +101,6 @@ export default function QuizResultsPage() {
   const correctQuestions = result.questions.filter((q) => result.answers[q.id] === q.correctAnswer);
   const incorrectQuestions = result.questions.filter((q) => result.answers[q.id] !== q.correctAnswer);
 
-  const handleMarkComplete = async () => {
-    if (lessonId && passedFinal) {
-      await markLessonComplete(lessonId);
-      // Attempt to issue certificate (backend decides if eligible)
-      await issueCertificate({
-        programme_id: '100DAY_SME',
-        title: '100-Day SME Mastery Certificate',
-        criteria: `Passed quiz for lesson ${lessonId} with score ${score}%`,
-      }).catch(() => {}); // Silently ignore if not eligible yet
-    }
-    navigate('/learning');
-  };
 
   return (
     <div className="min-h-screen bg-[#f3f0fa]">
@@ -231,6 +242,7 @@ export default function QuizResultsPage() {
         </Card>
 
         <div className="space-y-3">
+{/* 
           {passedFinal && (
             <Button
               variant="primary"
@@ -240,7 +252,8 @@ export default function QuizResultsPage() {
             >
               ✅ Mark Lesson Complete
             </Button>
-          )}
+          )} 
+          */}
 
           {/* Attempts exhausted without passing */}
           {!passedFinal && noAttemptsLeft && (
@@ -323,10 +336,7 @@ export default function QuizResultsPage() {
               variant="primary"
               size="lg"
               className={noAttemptsLeft && !passedFinal ? 'w-full md:col-span-2' : 'w-full'}
-              onClick={async () => {
-                if (lessonId && passedFinal) await markLessonComplete(lessonId).catch(() => {});
-                navigate('/learning');
-              }}
+              onClick={handleNextNavigation}
             >
               Continue to Next Lesson
               <ArrowRight className="w-4 h-4 ml-2" />

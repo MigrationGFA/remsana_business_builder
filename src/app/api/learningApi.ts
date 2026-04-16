@@ -306,3 +306,28 @@ export async function issueCertificate(params: {
     return null;
   }
 }
+/**
+ * Find the next lesson in the programme structure
+ */
+export function getNextLesson(programme: LearningProgramme, currentLessonId: string): LearningLesson | null {
+  if (!programme.modules) return null;
+
+  const allLessons: LearningLesson[] = [];
+  // Sort modules by sort_order
+  const sortedModules = [...programme.modules].sort((a, b) => a.sort_order - b.sort_order);
+
+  for (const mod of sortedModules) {
+    if (mod.lessons) {
+      // Sort lessons within module by sort_order
+      const sortedLessons = [...mod.lessons].sort((a, b) => a.sort_order - b.sort_order);
+      allLessons.push(...sortedLessons);
+    }
+  }
+
+  const currentIndex = allLessons.findIndex((l) => l.id === currentLessonId);
+  if (currentIndex !== -1 && currentIndex < allLessons.length - 1) {
+    return allLessons[currentIndex + 1];
+  }
+
+  return null;
+}

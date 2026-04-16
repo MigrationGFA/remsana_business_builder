@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Play, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, Button } from '../components/remsana';
-import { getLesson, recordLessonView, markLessonComplete } from '../api/learningApi';
+import { getLesson, recordLessonView, markLessonComplete, getProgramme, getNextLesson } from '../api/learningApi';
 import type { LearningLesson } from '../api/learningApi';
 import { LessonVideoPlayer, isScreenpalLessonUrl } from '../components/learning/LessonVideoPlayer';
 
@@ -41,7 +41,27 @@ export default function LessonPlayerPage() {
         setError('Failed to load lesson.');
       })
       .finally(() => setLoading(false));
+
+    getProgramme()
+      .then((prog) => {
+        if (prog && lessonId) {
+          const next = getNextLesson(prog, lessonId);
+          setNextLesson(next);
+        }
+      })
+      .catch((err) => console.error('Failed to load programme for navigation:', err));
   }, [lessonId]);
+
+  const [nextLesson, setNextLesson] = useState<LearningLesson | null>(null);
+
+  const handleNextNavigation = async () => {
+    if (lessonId && !lesson?.has_quiz) await markLessonComplete(lessonId).catch(() => {});
+    if (nextLesson) {
+      navigate(`/lesson/${nextLesson.id}`);
+    } else {
+      navigate('/learning');
+    }
+  };
 
 
 
@@ -159,7 +179,7 @@ export default function LessonPlayerPage() {
                 <p className="text-[14px] font-semibold text-green-800">Lesson Complete!</p>
                 <p className="text-[12px] text-green-600">Your progress has been saved.</p>
               </div>
-              <Button variant="primary" size="sm" onClick={() => navigate('/learning')}>
+              <Button variant="primary" size="sm" onClick={handleNextNavigation}>
                 Continue Learning
               </Button>
             </CardContent>
@@ -282,7 +302,7 @@ export default function LessonPlayerPage() {
                         <p className="text-[13px] text-amber-700 mb-3">
                           You've used all {lesson.quiz.max_attempts} attempts for this quiz. You can rewatch the video above to review the material, then continue with the next lesson.
                         </p>
-                        <Button variant="primary" size="sm" onClick={() => navigate('/learning')}>
+                        <Button variant="primary" size="sm" onClick={handleNextNavigation}>
                           Continue to Next Lesson
                           <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                         </Button>

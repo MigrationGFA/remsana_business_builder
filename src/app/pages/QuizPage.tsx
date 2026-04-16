@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Clock, BookOpen, AlertTriangle, Play } from 'lucide-react';
 import { Card, CardContent, Button, LinearProgress } from '../components/remsana';
-import { getLesson, submitQuizAttempt } from '../api/learningApi';
+import { getLesson, submitQuizAttempt, getProgramme, getNextLesson } from '../api/learningApi';
 import type { LearningLesson, LearningQuizOption } from '../api/learningApi';
 
 export default function QuizPage() {
@@ -48,7 +48,26 @@ export default function QuizPage() {
         setError('Failed to load quiz.');
       })
       .finally(() => setLoading(false));
+
+    getProgramme()
+      .then((prog) => {
+        if (prog && lessonId) {
+          const next = getNextLesson(prog, lessonId);
+          setNextLesson(next);
+        }
+      })
+      .catch((err) => console.error('Failed to load programme for navigation:', err));
   }, [lessonId]);
+
+  const [nextLesson, setNextLesson] = useState<LearningLesson | null>(null);
+
+  const handleNextNavigation = () => {
+    if (nextLesson) {
+      navigate(`/lesson/${nextLesson.id}`);
+    } else {
+      navigate('/learning');
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -228,7 +247,7 @@ export default function QuizPage() {
                 variant="secondary"
                 size="lg"
                 className="w-full"
-                onClick={() => navigate('/learning')}
+                onClick={handleNextNavigation}
               >
                 Continue to Next Lesson
               </Button>
