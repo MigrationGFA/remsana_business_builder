@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, Play, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { Card, CardContent, Button } from '../components/remsana';
-import { getLesson, recordLessonView, markLessonComplete } from '../api/learningApi';
+import { getLesson, recordLessonView, markLessonComplete, getProgramme, getNextLesson } from '../api/learningApi';
 import type { LearningLesson } from '../api/learningApi';
 import { LessonVideoPlayer, isScreenpalLessonUrl } from '../components/learning/LessonVideoPlayer';
 
@@ -13,11 +13,7 @@ function formatDuration(sec?: number): string {
   return `${m} minute${m !== 1 ? 's' : ''} ${s} second${s !== 1 ? 's' : ''}`;
 }
 
-function formatTime(sec: number): string {
-  const m = Math.floor(sec / 60);
-  const s = Math.floor(sec % 60);
-  return `${m}:${s.toString().padStart(2, '0')}`;
-}
+
 
 export default function LessonPlayerPage() {
   const navigate = useNavigate();
@@ -26,8 +22,7 @@ export default function LessonPlayerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [videoPlaying, setVideoPlaying] = useState(false);
-  const [watchedSec, setWatchedSec] = useState(0);
-  const [totalSec, setTotalSec] = useState(0);
+
   const [videoCompleted, setVideoCompleted] = useState(false);
 
   useEffect(() => {
@@ -46,12 +41,29 @@ export default function LessonPlayerPage() {
         setError('Failed to load lesson.');
       })
       .finally(() => setLoading(false));
+
+    getProgramme()
+      .then((prog) => {
+        if (prog && lessonId) {
+          const next = getNextLesson(prog, lessonId);
+          setNextLesson(next);
+        }
+      })
+      .catch((err) => console.error('Failed to load programme for navigation:', err));
   }, [lessonId]);
 
-  const handleVideoProgress = useCallback((watched: number, duration: number) => {
-    setWatchedSec(watched);
-    if (duration > 0) setTotalSec(duration);
-  }, []);
+  const [nextLesson, setNextLesson] = useState<LearningLesson | null>(null);
+
+  const handleNextNavigation = async () => {
+    if (lessonId && !lesson?.has_quiz) await markLessonComplete(lessonId).catch(() => {});
+    if (nextLesson) {
+      navigate(`/lesson/${nextLesson.id}`);
+    } else {
+      navigate('/learning');
+    }
+  };
+
+
 
   const handleVideoComplete = useCallback(() => {
     setVideoCompleted(true);
@@ -145,7 +157,6 @@ export default function LessonPlayerPage() {
                       lessonId={lesson.id}
                       videoUrl={lesson.video_url}
                       durationSec={lesson.duration_sec}
-                      onProgress={handleVideoProgress}
                       onComplete={handleVideoComplete}
                     />
                   ) : (
@@ -157,32 +168,6 @@ export default function LessonPlayerPage() {
                 </div>
               )}
             </div>
-            {videoPlaying && (
-              <div className="p-4 bg-[#1F2121] text-white">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-4">
-                    {videoCompleted ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-400" />
-                    ) : (
-                      <Play className="w-5 h-5" />
-                    )}
-                    <span className="text-[12px]">{formatTime(watchedSec)}</span>
-                    <div className="flex-1 h-1 bg-white/30 rounded-full">
-                      <div
-                        className="h-full bg-white rounded-full transition-all duration-300"
-                        style={{ width: `${totalSec > 0 ? Math.min((watchedSec / totalSec) * 100, 100) : 0}%` }}
-                      />
-                    </div>
-                    <span className="text-[12px]">{totalSec > 0 ? formatTime(totalSec) : duration}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button className="text-[12px] hover:opacity-70">1.0x</button>
-                    <button className="text-[12px] hover:opacity-70">CC</button>
-                    <button className="text-[12px] hover:opacity-70">⛶</button>
-                  </div>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -194,7 +179,7 @@ export default function LessonPlayerPage() {
                 <p className="text-[14px] font-semibold text-green-800">Lesson Complete!</p>
                 <p className="text-[12px] text-green-600">Your progress has been saved.</p>
               </div>
-              <Button variant="primary" size="sm" onClick={() => navigate('/learning')}>
+              <Button variant="primary" size="sm" onClick={handleNextNavigation}>
                 Continue Learning
               </Button>
             </CardContent>
@@ -317,7 +302,7 @@ export default function LessonPlayerPage() {
                         <p className="text-[13px] text-amber-700 mb-3">
                           You've used all {lesson.quiz.max_attempts} attempts for this quiz. You can rewatch the video above to review the material, then continue with the next lesson.
                         </p>
-                        <Button variant="primary" size="sm" onClick={() => navigate('/learning')}>
+                        <Button variant="primary" size="sm" onClick={handleNextNavigation}>
                           Continue to Next Lesson
                           <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                         </Button>
