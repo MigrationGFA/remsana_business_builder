@@ -19,13 +19,13 @@ export default function InsiderMfaPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (code.length !== 6) {
+      setError('Enter the 6-digit code');
+      return;
+    }
     setLoading(true);
-
     try {
-      if (code.length === 6) {
-        await insiderVerifyMfa(code);
-      }
-
+      await insiderVerifyMfa(code);
       const user = getInsiderUser();
       if (user?.role === 'ADMIN') navigate('/insider/admin', { replace: true });
       else navigate('/insider/analyst', { replace: true });
@@ -92,7 +92,7 @@ export default function InsiderMfaPage() {
                   className="w-full h-[48px] text-center text-[24px] tracking-[0.5em] rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#1C1C8B] focus:border-transparent"
                 />
               </div>
-              <Button type="submit" loading={loading} className="w-full">
+              <Button type="submit" loading={loading} disabled={code.length !== 6} className="w-full">
                 VERIFY
               </Button>
             </form>
