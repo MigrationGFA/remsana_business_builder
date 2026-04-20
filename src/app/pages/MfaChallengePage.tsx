@@ -12,7 +12,9 @@ import { mfaChallenge } from '../api/authApi';
 export default function MfaChallengePage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const challengeToken = (location.state as { challengeToken?: string })?.challengeToken || '';
+  const challengeToken = (location.state as { challengeToken?: string })?.challengeToken
+    || localStorage.getItem('remsana_mfa_challenge')
+    || '';
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +30,33 @@ export default function MfaChallengePage() {
     if (code.length !== 6) { setError('Enter the 6-digit code'); return; }
     setLoading(true);
     try {
-      const data = await mfaChallenge(challengeToken, code);
-      localStorage.setItem('remsana_auth_token', data.access_token);
-      localStorage.setItem('remsana_refresh_token', data.refresh_token || '');
-      localStorage.setItem('remsana_user', JSON.stringify({ email: data.user.email, name: data.user.full_name || data.user.email.split('@')[0] }));
+      const res = await mfaChallenge(challengeToken, code);
+      const payload = (res as any)?.data ?? res;
+      const accessToken = payload?.access_token || payload?.token;
+      const refreshToken = payload?.refresh_token;
+      const userData = payload?.user;
+      const expiresIn = payload?.expires_in ?? 3600;
+
+      if (!accessToken) {
+        setError('Verification succeeded but no token was received. Please try again.');
+        return;
+      }
+
+      localStorage.setItem('remsana_auth_token', accessToken);
+      if (refreshToken) localStorage.setItem('remsana_refresh_token', refreshToken);
+      localStorage.setItem('remsana_user', JSON.stringify({
+        email: userData?.email || '',
+        full_name: userData?.full_name || userData?.name || '',
+        ...userData,
+      }));
+      localStorage.setItem('remsana_auth_session', JSON.stringify({
+        access_token: accessToken,
+        refresh_token: refreshToken || '',
+        expires_in: expiresIn,
+        user: userData || {},
+      }));
+      // Clean up challenge token
+      localStorage.removeItem('remsana_mfa_challenge');
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Invalid code. Please try again.');
