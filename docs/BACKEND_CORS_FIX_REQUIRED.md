@@ -15,7 +15,7 @@ The frontend application is deployed and working, but all API calls are being bl
 ## ❌ Current Error
 
 ```
-Access to XMLHttpRequest at 'https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login' 
+Access to XMLHttpRequest at 'https://rbbphpremsana.azurewebsites.net/api/v1/auth/login' 
 from origin 'https://businessbuilder-test.azurewebsites.net' 
 has been blocked by CORS policy: Response to preflight request doesn't pass access control check: 
 No 'Access-Control-Allow-Origin' header is present on the requested resource.
@@ -32,7 +32,7 @@ No 'Access-Control-Allow-Origin' header is present on the requested resource.
 |-------------|--------|
 | **Frontend (Production)** | `https://businessbuilder-test.azurewebsites.net` |
 | **Frontend (Development)** | `http://localhost:5174` |
-| **Backend API** | `https://rbbphpremsana-test.azurewebsites.net/api/v1` |
+| **Backend API** | `https://rbbphpremsana.azurewebsites.net/api/v1` |
 
 ---
 
@@ -170,7 +170,7 @@ git push azure main
 Test that CORS headers are being sent:
 
 ```bash
-curl -X OPTIONS https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
+curl -X OPTIONS https://rbbphpremsana.azurewebsites.net/api/v1/auth/login \
   -H "Origin: https://businessbuilder-test.azurewebsites.net" \
   -H "Access-Control-Request-Method: POST" \
   -H "Access-Control-Request-Headers: Content-Type, Authorization" \
@@ -194,7 +194,7 @@ curl -X OPTIONS https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
 Open `https://businessbuilder-test.azurewebsites.net` and run in console:
 
 ```javascript
-fetch('https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login', {
+fetch('https://rbbphpremsana.azurewebsites.net/api/v1/auth/login', {
   method: 'POST',
   headers: { 
     'Content-Type': 'application/json'
@@ -295,7 +295,7 @@ After implementing the fix, verify:
 **Frontend Deployment:** https://businessbuilder-test.azurewebsites.net  
 
 **Backend Repository:** [Backend Repository URL]  
-**Backend API:** https://rbbphpremsana-test.azurewebsites.net  
+**Backend API:** https://rbbphpremsana.azurewebsites.net  
 
 ---
 

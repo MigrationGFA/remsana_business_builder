@@ -6,7 +6,7 @@ The frontend is now live at https://businessbuilder-test.azurewebsites.net but a
 
 ERROR:
 ------
-"Access to XMLHttpRequest at 'https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login' 
+"Access to XMLHttpRequest at 'https://rbbphpremsana.azurewebsites.net/api/v1/auth/login' 
 from origin 'https://businessbuilder-test.azurewebsites.net' has been blocked by CORS policy: 
 No 'Access-Control-Allow-Origin' header is present on the requested resource."
 
@@ -41,7 +41,7 @@ TESTING:
 --------
 After deployment, run this from command line:
 
-curl -X OPTIONS https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
+curl -X OPTIONS https://rbbphpremsana.azurewebsites.net/api/v1/auth/login \
   -H "Origin: https://businessbuilder-test.azurewebsites.net" \
   -H "Access-Control-Request-Method: POST" \
   -v

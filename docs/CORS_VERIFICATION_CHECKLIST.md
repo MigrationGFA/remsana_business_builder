@@ -23,7 +23,7 @@ Use this checklist to verify the CORS fix has been implemented correctly.
 
 ### Test 1: OPTIONS Preflight Request
 ```bash
-curl -X OPTIONS https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
+curl -X OPTIONS https://rbbphpremsana.azurewebsites.net/api/v1/auth/login \
   -H "Origin: https://businessbuilder-test.azurewebsites.net" \
   -H "Access-Control-Request-Method: POST" \
   -H "Access-Control-Request-Headers: Content-Type, Authorization" \
@@ -40,7 +40,7 @@ curl -X OPTIONS https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
 
 ### Test 2: Actual API Request
 ```bash
-curl -X POST https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
+curl -X POST https://rbbphpremsana.azurewebsites.net/api/v1/auth/login \
   -H "Origin: https://businessbuilder-test.azurewebsites.net" \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"test"}' \
@@ -60,7 +60,7 @@ curl -X POST https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
 3. Paste and run:
 
 ```javascript
-fetch('https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login', {
+fetch('https://rbbphpremsana.azurewebsites.net/api/v1/auth/login', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ email: 'test@test.com', password: 'test123' })

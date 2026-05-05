@@ -64,7 +64,7 @@ git commit -m "Add CORS support"
 git push
 
 # Test
-curl -X OPTIONS https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login \
+curl -X OPTIONS https://rbbphpremsana.azurewebsites.net/api/v1/auth/login \
   -H "Origin: https://businessbuilder-test.azurewebsites.net" \
   -v | grep "Access-Control"
 ```

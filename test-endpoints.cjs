@@ -1,6 +1,6 @@
 const axios = require('axios');
 const https = require('https');
-const BASE = 'https://rbbphpremsana-test.azurewebsites.net/api/v1';
+const BASE = 'https://rbbphpremsana.azurewebsites.net/api/v1';
 const EMAIL = 'feuffeimulleidda-8021@yopmail.com';
 const PASS = 'Tolubolu123$';
 
@@ -8,7 +8,7 @@ const PASS = 'Tolubolu123$';
 const agent = new https.Agent({ rejectUnauthorized: false });
 const client = axios.create({
   baseURL: 'https://20.50.2.69/api/v1',
-  headers: { 'Host': 'rbbphpremsana-test.azurewebsites.net' },
+  headers: { 'Host': 'rbbphpremsana.azurewebsites.net' },
   httpsAgent: agent,
   timeout: 15000,
 });
@@ -182,7 +182,7 @@ async function test() {
   // Test engagement API
   console.log('');
   console.log('--- Engagement API (Node.js backend) ---');
-  const ENG_BASE = 'https://rbbnodejsremsana-test.azurewebsites.net';
+  const ENG_BASE = 'https://rbbnodejsremsana.azurewebsites.net';
   const engEndpoints = [
     { m: 'GET', p: '/health' },
     { m: 'GET', p: '/api/v1/status' },
