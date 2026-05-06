@@ -316,6 +316,7 @@ const LandingPage = () => {
 
           <div className="zigzag-container">
             {/* Step 1 */}
+            {/* this is the for signup and assess */}
             <div className="zigzag-row">
               <div className="zigzag-image-col">
                 <div className="image-wrapper">
