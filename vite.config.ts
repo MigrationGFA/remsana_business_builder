@@ -17,7 +17,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'https://rbbphpremsana-test.azurewebsites.net',
+        target: '/api/v1',
         changeOrigin: true,
       }
     }
