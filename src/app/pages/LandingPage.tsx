@@ -160,7 +160,7 @@ const LandingPage = () => {
               <img
                 src="/assets/impact-hero.webp"
                 alt="African woman entrepreneur working on her laptop"
-                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
+                // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
               />
               <div className="image-accent-line"></div>
             </div>
@@ -187,7 +187,7 @@ const LandingPage = () => {
               <img
                 src="/assets/impact-team.webp"
                 alt="African entrepreneurs collaborating at a modern office"
-                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
+                // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
               />
               <div className="image-accent-line"></div>
             </div>
@@ -377,7 +377,7 @@ const LandingPage = () => {
             <div className="zigzag-row">
               <div className="zigzag-image-col">
                 <div className="image-wrapper">
-                  <img src="/assets/journey_step4_launch.png" alt="Build & Launch" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&q=80&w=800'; }} />
+                  <img src="/assets/buildlaunch.jpg" alt="Build & Launch"/>
                   <div className="floating-number">04</div>
                 </div>
               </div>
@@ -512,9 +512,9 @@ const LandingPage = () => {
             <article className="blog-card">
               <div className="blog-image-wrapper">
                 <img
-                  src="/assets/blog-1.png"
+                  src="/assets/blog-1.webp"
                   alt="Black African businessman explaining formalization in an office"
-                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
+                  // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
                 />
                 <span className="blog-category">Guide</span>
               </div>
@@ -536,9 +536,9 @@ const LandingPage = () => {
             <article className="blog-card">
               <div className="blog-image-wrapper">
                 <img
-                  src="/assets/blog-2.png"
+                  src="/assets/blog-2.webp"
                   alt="Black African woman entrepreneur reviewing financial charts"
-                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164574572-cb89e39749b4?auto=format&fit=crop&q=80&w=800'; }}
+                  // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164574572-cb89e39749b4?auto=format&fit=crop&q=80&w=800'; }}
                 />
                 <span className="blog-category">Finance</span>
               </div>
@@ -560,9 +560,9 @@ const LandingPage = () => {
             <article className="blog-card">
               <div className="blog-image-wrapper">
                 <img
-                  src="/assets/blog-3.png"
+                  src="/assets/blog-3.webp"
                   alt="Successful Black African male entrepreneur standing by his storefront"
-                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
+                  // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
                 />
                 <span className="blog-category">Growth</span>
               </div>
