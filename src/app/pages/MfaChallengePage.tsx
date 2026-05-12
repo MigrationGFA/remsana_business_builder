@@ -75,7 +75,7 @@ export default function MfaChallengePage() {
   return (
     <div className="min-h-screen bg-[#f3f0fa] flex flex-col">
       <header className="bg-white shadow-sm py-4 px-4 md:px-8">
-        <div className="max-w-[600px] mx-auto flex items-center gap-3">
+        <div className="max-w-[720px] mx-auto flex items-center gap-3">
           <img src={remsanaIcon} alt="REMSANA" className="w-10 h-10 object-contain cursor-pointer" onClick={() => navigate('/')} />
           <div><h1 className="text-[18px] font-semibold text-[#1F2121]">REMSANA</h1><p className="text-[12px] text-[#6B7C7C]">Verify Identity</p></div>
         </div>

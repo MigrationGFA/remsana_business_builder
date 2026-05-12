@@ -95,7 +95,7 @@ export default function LoanRepaymentSchedulePage() {
     <div className="min-h-screen bg-[#f3f0fa] flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm py-4 px-4 md:px-8">
-        <div className="max-w-[600px] mx-auto flex items-center gap-3">
+        <div className="max-w-[720px] mx-auto flex items-center gap-3">
           <img src={remsanaIcon} alt="REMSANA" className="w-10 h-10 object-contain" />
           <div>
             <h1 className="text-[18px] font-semibold text-[#1F2121]">REMSANA</h1>
@@ -106,7 +106,7 @@ export default function LoanRepaymentSchedulePage() {
 
       {/* Main Content */}
       <main className="flex-1 px-4 py-8">
-        <div className="max-w-[600px] mx-auto space-y-6">
+        <div className="max-w-[720px] mx-auto space-y-6">
           {/* Overview */}
           <Card>
             <CardContent className="p-6">

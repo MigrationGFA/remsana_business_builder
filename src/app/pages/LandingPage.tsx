@@ -184,7 +184,7 @@ const LandingPage = () => {
           <div className="impact-showcase impact-showcase-reverse">
             <div className="impact-image-block">
               <img
-                src="/assets/impact-team.png"
+                src="/assets/impact-team.webp"
                 alt="African entrepreneurs collaborating at a modern office"
                 onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
               />

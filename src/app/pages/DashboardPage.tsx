@@ -262,7 +262,7 @@ export default function DashboardPage() {
 
       {/* ─── Top Header ─── */}
       <header className="bg-white/80 backdrop-blur-lg border-b border-gray-100 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Logo + brand */}
           <div className="flex items-center gap-3">
             <img
@@ -455,7 +455,7 @@ export default function DashboardPage() {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1C1C8B] via-[#2d2da0] to-[#667eea]" />
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIyMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIi8+PC9zdmc+')] opacity-50" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+        <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <p className="text-white/60 text-xs font-medium uppercase tracking-wider mb-1">Welcome back</p>
@@ -494,7 +494,7 @@ export default function DashboardPage() {
       </section>
 
       {/* ─── Main Content ─── */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 -mt-6 relative z-10">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
 
         {/* ─── Status Cards Row ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 mb-8">
@@ -808,7 +808,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : recommendedResources.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {recommendedResources.map((resource) => (
                 <div key={resource.id} className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
                   <div className="w-10 h-10 rounded-xl bg-[#1C1C8B]/5 flex items-center justify-center flex-shrink-0">
