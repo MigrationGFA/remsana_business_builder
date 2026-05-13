@@ -149,7 +149,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-[#f8f6ff] to-slate-50">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-lg border-b border-gray-100 sticky top-0 z-30">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <button onClick={() => navigate('/dashboard')} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
@@ -161,7 +161,7 @@ export default function ProfilePage() {
       {/* Profile Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1C1C8B] via-[#2d2da0] to-[#667eea]" />
-        <div className="relative max-w-2xl mx-auto px-4 sm:px-6 py-8 flex items-center gap-4">
+        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 py-8 flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
             {(profile?.full_name?.[0] || profile?.email?.[0] || 'U').toUpperCase()}
           </div>
@@ -182,7 +182,7 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 -mt-4 relative z-10 pb-8 space-y-5">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 -mt-4 relative z-10 pb-8 space-y-5">
         {error && <Alert variant="error" message={error} dismissible onDismiss={() => setError('')} />}
         {success && <Alert variant="success" message={success} dismissible onDismiss={() => setSuccess('')} />}
 

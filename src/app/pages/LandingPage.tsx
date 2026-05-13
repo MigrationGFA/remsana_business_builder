@@ -75,7 +75,7 @@ const LandingPage = () => {
       <div className="hero-section" id="hero">
         <div className="hero-bg-image">
           <img
-            src="/assets/hero-image.jpg"
+            src="/assets/hero-image.webp"
             alt="African entrepreneurs collaborating at a workspace"
           />
         </div>
@@ -158,9 +158,8 @@ const LandingPage = () => {
           <div className="impact-showcase">
             <div className="impact-image-block">
               <img
-                src="/assets/impact-hero.png"
+                src="/assets/impact-hero.webp"
                 alt="African woman entrepreneur working on her laptop"
-                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
               />
               <div className="image-accent-line"></div>
             </div>
@@ -185,7 +184,7 @@ const LandingPage = () => {
           <div className="impact-showcase impact-showcase-reverse">
             <div className="impact-image-block">
               <img
-                src="/assets/impact-team.png"
+                src="/assets/impact-team.webp"
                 alt="African entrepreneurs collaborating at a modern office"
                 onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
               />

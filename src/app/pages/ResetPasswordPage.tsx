@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-[#f8f6ff] to-slate-50 flex flex-col">
         <header className="bg-white/80 backdrop-blur-lg border-b border-gray-100 py-3 px-4 sm:px-6">
-          <div className="max-w-[600px] mx-auto flex items-center gap-3">
+          <div className="max-w-[720px] mx-auto flex items-center gap-3">
             <img src={remsanaIcon} alt="REMSANA" className="w-9 h-9 object-contain" onClick={() => navigate('/')} />
             <div><h1 className="text-base font-bold text-gray-900 leading-tight">REMSANA</h1><p className="text-[11px] text-gray-400 -mt-0.5">Business Builder</p></div>
           </div>
@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-[#f8f6ff] to-slate-50 flex flex-col">
       <header className="bg-white/80 backdrop-blur-lg border-b border-gray-100 py-3 px-4 sm:px-6">
-        <div className="max-w-[600px] mx-auto flex items-center gap-3">
+        <div className="max-w-[720px] mx-auto flex items-center gap-3">
           <img src={remsanaIcon} alt="REMSANA" className="w-9 h-9 object-contain cursor-pointer" onClick={() => navigate('/')} />
           <div><h1 className="text-base font-bold text-gray-900 leading-tight">REMSANA</h1><p className="text-[11px] text-gray-400 -mt-0.5">Business Builder</p></div>
         </div>

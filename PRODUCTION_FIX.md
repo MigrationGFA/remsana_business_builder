@@ -9,9 +9,9 @@ Your app works in **development** but fails in **production** because:
 Frontend: http://localhost:5174
 API calls: /api/v1/auth/login
            ↓
-Vite Proxy: Forwards /api → https://rbbphpremsana-test.azurewebsites.net
+Vite Proxy: Forwards /api → https://rbbphpremsana.azurewebsites.net
            ↓
-Backend: https://rbbphpremsana-test.azurewebsites.net/api/v1/auth/login ✅
+Backend: https://rbbphpremsana.azurewebsites.net/api/v1/auth/login ✅
 ```
 
 ### Production Setup (Fails ❌)
@@ -40,7 +40,7 @@ Uses Vite proxy → backend
 ### **Production** (NEW - Just created)
 ```env
 # .env.production (NEW FILE)
-VITE_API_BASE_URL=https://rbbphpremsana-test.azurewebsites.net/api/v1
+VITE_API_BASE_URL=https://rbbphpremsana.azurewebsites.net/api/v1
 ```
 Direct connection → backend
 
@@ -50,7 +50,7 @@ Direct connection → backend
 
 ### 1. ✅ Created `.env.production`
 ```env
-VITE_API_BASE_URL=https://rbbphpremsana-test.azurewebsites.net/api/v1
+VITE_API_BASE_URL=https://rbbphpremsana.azurewebsites.net/api/v1
 ```
 
 ### 2. ✅ Updated `httpClient.ts`
@@ -79,7 +79,7 @@ npm run preview
 # Option 1: Set in Azure Portal
 # Settings → Configuration → Add:
 # Name: VITE_API_BASE_URL  
-# Value: https://rbbphpremsana-test.azurewebsites.net/api/v1
+# Value: https://rbbphpremsana.azurewebsites.net/api/v1
 
 # Option 2: Use .env.production (already created!)
 npm run build
@@ -112,7 +112,7 @@ npm run dev
 
 # In production preview
 npm run preview
-# Console should show: baseURL: "https://rbbphpremsana-test.azurewebsites.net/api/v1"
+# Console should show: baseURL: "https://rbbphpremsana.azurewebsites.net/api/v1"
 ```
 
 ---
@@ -191,7 +191,7 @@ VITE_API_BASE_URL=/api/v1
 ### Production config is in `.env.production`
 ```env
 # New file - already created for you!
-VITE_API_BASE_URL=https://rbbphpremsana-test.azurewebsites.net/api/v1
+VITE_API_BASE_URL=https://rbbphpremsana.azurewebsites.net/api/v1
 ```
 
 ### How Vite Chooses:

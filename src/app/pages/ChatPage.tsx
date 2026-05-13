@@ -163,7 +163,7 @@ export default function ChatPage() {
     <div className="min-h-screen bg-[#F5F6FA] flex flex-col">
       {/* Header */}
       <div className="bg-white border-b border-[#6B7C7C]/20 px-4 py-3">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button
             onClick={() => view === 'list' ? navigate('/dashboard') : (setView('list'), setActiveConversationId(null))}
             className="p-2 hover:bg-gray-100 rounded-lg"
@@ -184,7 +184,7 @@ export default function ChatPage() {
 
       {/* LIST VIEW */}
       {view === 'list' && (
-        <div className="max-w-3xl mx-auto w-full p-4 space-y-3 flex-1">
+        <div className="max-w-4xl mx-auto w-full p-4 space-y-3 flex-1">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-3">
               {error}
@@ -233,7 +233,7 @@ export default function ChatPage() {
 
       {/* CONVERSATION VIEW */}
       {view === 'conversation' && (
-        <div className="flex flex-col flex-1 max-w-3xl mx-auto w-full">
+        <div className="flex flex-col flex-1 max-w-4xl mx-auto w-full">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {error && (
@@ -286,7 +286,7 @@ export default function ChatPage() {
 
           {/* Input */}
           <div className="bg-white border-t border-[#6B7C7C]/20 p-3">
-            <div className="max-w-3xl mx-auto flex items-end gap-2">
+            <div className="max-w-4xl mx-auto flex items-end gap-2">
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="p-2 hover:bg-gray-100 rounded-lg text-[#6B7C7C]"

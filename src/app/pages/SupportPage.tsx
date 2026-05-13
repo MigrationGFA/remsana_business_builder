@@ -122,7 +122,7 @@ export default function SupportPage() {
     <div className="min-h-screen bg-[#F5F6FA]">
       {/* Header */}
       <div className="bg-white border-b border-[#6B7C7C]/20 px-4 py-3">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button
             onClick={() => view === 'list' ? navigate('/dashboard') : setView('list')}
             className="p-2 hover:bg-gray-100 rounded-lg"
@@ -141,7 +141,7 @@ export default function SupportPage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto p-4 space-y-4">
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
         {error && <Alert variant="error" message={error} dismissible onDismiss={() => setError('')} />}
 
         {/* LIST VIEW */}

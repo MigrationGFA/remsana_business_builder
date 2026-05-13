@@ -3,7 +3,7 @@ import axios from 'axios';
 // === PASTE YOUR FULL TOKEN HERE (from browser console: localStorage.getItem('remsana_auth_token')) ===
 const TOKEN = process.env.TOKEN || 'PASTE_YOUR_TOKEN_HERE';
 
-const BASE = 'https://rbbphpremsana-test.azurewebsites.net/api/v1';
+const BASE = 'https://rbbphpremsana.azurewebsites.net/api/v1';
 
 async function test(method, path) {
   const url = BASE + path;
