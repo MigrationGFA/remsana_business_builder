@@ -186,7 +186,7 @@ const LandingPage = () => {
               <img
                 src="/assets/impact-team.webp"
                 alt="African entrepreneurs collaborating at a modern office"
-                onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
+                // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
               />
               <div className="image-accent-line"></div>
             </div>
@@ -235,7 +235,7 @@ const LandingPage = () => {
           {/* Card 2: Banking */}
           <div className="need-card">
             <div className="need-image">
-              <img src="/assets/Instant-Banking.jpg" alt="Instant Banking Access" />
+              <img src="/assets/Instant-Banking.webp" alt="Instant Banking Access" />
             </div>
             <div className="need-content">
               <div className="need-icon-wrapper">
@@ -249,7 +249,7 @@ const LandingPage = () => {
           {/* Card 3: Credit */}
           <div className="need-card">
             <div className="need-image">
-              <img src="/assets/Credit-Facilitation.jpg" alt="Credit Facilitation" />
+              <img src="/assets/Credit-Facilitation.webp" alt="Credit Facilitation" />
             </div>
             <div className="need-content">
               <div className="need-icon-wrapper">
@@ -263,7 +263,7 @@ const LandingPage = () => {
           {/* Card 4: Coaching */}
           <div className="need-card">
             <div className="need-image">
-              <img src="/assets/100-days-coaching.jpg" alt="Coaching Program" />
+              <img src="/assets/100-days-coaching.webp" alt="Coaching Program" />
             </div>
             <div className="need-content">
               <div className="need-icon-wrapper">
@@ -291,7 +291,7 @@ const LandingPage = () => {
           {/* Card 6: Community */}
           <div className="need-card">
             <div className="need-image">
-              <img src="/assets/Thriving-Community.jpg" alt="Thriving Community" />
+              <img src="/assets/Thriving-Community.webp" alt="Thriving Community" />
             </div>
             <div className="need-content">
               <div className="need-icon-wrapper">
@@ -315,6 +315,7 @@ const LandingPage = () => {
 
           <div className="zigzag-container">
             {/* Step 1 */}
+            {/* this is the for signup and assess */}
             <div className="zigzag-row">
               <div className="zigzag-image-col">
                 <div className="image-wrapper">
@@ -356,7 +357,7 @@ const LandingPage = () => {
             <div className="zigzag-row">
               <div className="zigzag-image-col">
                 <div className="image-wrapper">
-                  <img src="/assets/Connect-Banking-Credit.jpg" alt="Connect Banking & Credit" />
+                  <img src="/assets/Connect-Banking-Credit.webp" alt="Connect Banking & Credit" />
                   <div className="floating-number">03</div>
                 </div>
               </div>
@@ -375,7 +376,7 @@ const LandingPage = () => {
             <div className="zigzag-row">
               <div className="zigzag-image-col">
                 <div className="image-wrapper">
-                  <img src="/assets/journey_step4_launch.png" alt="Build & Launch" onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?auto=format&fit=crop&q=80&w=800'; }} />
+                  <img src="/assets/buildlaunch.jpg" alt="Build & Launch"/>
                   <div className="floating-number">04</div>
                 </div>
               </div>
@@ -394,7 +395,7 @@ const LandingPage = () => {
             <div className="zigzag-row">
               <div className="zigzag-image-col">
                 <div className="image-wrapper">
-                  <img src="/assets/Grow-with-Guidance.jpg" alt="Grow with Guidance" />
+                  <img src="/assets/Grow-with-Guidance.webp" alt="Grow with Guidance" />
                   <div className="floating-number">05</div>
                 </div>
               </div>
@@ -510,9 +511,9 @@ const LandingPage = () => {
             <article className="blog-card">
               <div className="blog-image-wrapper">
                 <img
-                  src="/assets/blog-1.png"
+                  src="/assets/blog-1.webp"
                   alt="Black African businessman explaining formalization in an office"
-                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
+                  // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
                 />
                 <span className="blog-category">Guide</span>
               </div>
@@ -534,9 +535,9 @@ const LandingPage = () => {
             <article className="blog-card">
               <div className="blog-image-wrapper">
                 <img
-                  src="/assets/blog-2.png"
+                  src="/assets/blog-2.webp"
                   alt="Black African woman entrepreneur reviewing financial charts"
-                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164574572-cb89e39749b4?auto=format&fit=crop&q=80&w=800'; }}
+                  // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164574572-cb89e39749b4?auto=format&fit=crop&q=80&w=800'; }}
                 />
                 <span className="blog-category">Finance</span>
               </div>
@@ -558,9 +559,9 @@ const LandingPage = () => {
             <article className="blog-card">
               <div className="blog-image-wrapper">
                 <img
-                  src="/assets/blog-3.png"
+                  src="/assets/blog-3.webp"
                   alt="Successful Black African male entrepreneur standing by his storefront"
-                  onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
+                  // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1531123414780-e3746fe2dc25?auto=format&fit=crop&q=80&w=800'; }}
                 />
                 <span className="blog-category">Growth</span>
               </div>
