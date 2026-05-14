@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button, Input, Checkbox, Card, CardContent } from '../../components/remsana';
 import remsanaIcon from '../../../assets/26f993a5c4ec035ea0c113133453dbf42a37dc80.png';
-import { insiderLogin } from '../../api/insider/auth';
+import { insiderLogin, getInsiderUser } from '../../api/insider/auth';
 import type { InsiderRole } from '../../api/insider/types';
 
 export default function InsiderLoginPage() {
@@ -23,8 +23,17 @@ export default function InsiderLoginPage() {
     setError(null);
     setLoading(true);
     try {
+      // await insiderLogin({ email, password, role });
+      // navigate('/insider/mfa', { state: { role } });
       await insiderLogin({ email, password, role });
-      navigate('/insider/mfa', { state: { role } });
+
+      const user = getInsiderUser();
+
+      if (user?.role === 'ADMIN') {
+        navigate('/insider/admin', { replace: true });
+      } else {
+        navigate('/insider/analyst', { replace: true });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid email or password');
     } finally {
@@ -37,7 +46,7 @@ export default function InsiderLoginPage() {
   return (
     <div className="min-h-screen bg-[#f3f0fa] flex flex-col">
       <header className="bg-white shadow-sm py-4 px-4 md:px-8">
-        <div className="max-w-[600px] mx-auto flex items-center gap-3">
+        <div className="max-w-[720px] mx-auto flex items-center gap-3">
           <img src={remsanaIcon} alt="REMSANA" className="w-10 h-10 object-contain cursor-pointer" onClick={() => navigate('/insider')} />
           <div>
             <h1 className="text-[18px] font-semibold text-[#1F2121]">REMSANA /INSIDER</h1>

@@ -299,28 +299,45 @@ export default function BusinessRegistrationPage() {
         return;
       }
 
-      // Save step 2 (proprietors) and step 4 (address) via API
-      if (hasBackend() && regId) {
-        try {
-          const proprietors: CacProprietor[] = [{
-            fullName: proprietorFullName.trim(),
-            email: proprietorEmail.trim(),
-            phone: proprietorPhone.trim(),
-            address: proprietorAddress.trim(),
-            dob: proprietorDob,
-            occupation: proprietorOccupation.trim(),
-          }];
-          await saveCacStep2(regId, proprietors);
-          await saveCacStep4(regId, {
-            registeredAddress: registeredAddress.trim(),
-            commencementDate,
-          });
-        } catch (err: any) {
-          setErrorMessage(err?.response?.data?.error || err?.message || 'Failed to save proprietor/address details');
-          setShowErrorModal(true);
-          return;
-        }
-      }
+       // Save step 1 (business/company core info), then step 2 (proprietors) and step 4 (address) via API
+       if (hasBackend() && regId) {
+         try {
+           // Step 1: Business/Company information
+           if (registrationType === 'business_name') {
+             await saveCacStep1(regId, {
+               businessName: proposedBusinessName.trim(),
+               businessNameAlt: proposedBusinessNameAlt.trim(),
+               businessObjects: [businessObject1, businessObject2, businessObject3].filter(Boolean),
+             });
+           } else if (registrationType === 'company_incorporation') {
+             await saveCacStep1(regId, {
+               companyName: proposedCompanyName.trim(),
+               companyNameAlt: proposedCompanyNameAlt.trim(),
+               companyObjects: companyObjectsText.trim(),
+               authorizedShareCapital: Number(authorizedShareCapital.replace(/[^\d]/g, '')),
+             });
+           }
+           // Step 2: Proprietor/Director
+           const proprietors: CacProprietor[] = [{
+             fullName: proprietorFullName.trim(),
+             email: proprietorEmail.trim(),
+             phone: proprietorPhone.trim(),
+             address: proprietorAddress.trim(),
+             dob: proprietorDob,
+             occupation: proprietorOccupation.trim(),
+           }];
+           await saveCacStep2(regId, proprietors);
+           // Step 4: Address
+           await saveCacStep4(regId, {
+             registeredAddress: registeredAddress.trim(),
+             commencementDate,
+           });
+         } catch (err: any) {
+           setErrorMessage(err?.response?.data?.error || err?.message || 'Failed to save registration details');
+           setShowErrorModal(true);
+           return;
+         }
+       }
     }
     if (currentStep === 3) {
       // On payment step, trigger payment handler instead of moving to next step
@@ -346,28 +363,35 @@ export default function BusinessRegistrationPage() {
     }
   };
 
-  const saveProgress = async () => {
-    if (hasBackend() && regId) {
-      try {
-        if (registrationType === 'business_name' && proposedBusinessName) {
-          await saveCacStep1(regId, {
-            businessName: proposedBusinessName,
-            businessNameAlt: proposedBusinessNameAlt,
-            businessObjects: [businessObject1, businessObject2, businessObject3].filter(Boolean),
-          });
-        }
-      } catch (_) { /* ignore save errors */ }
-    } else {
-      localStorage.setItem('remsana_business_registration_progress', JSON.stringify({
-        currentStep,
-        registrationType,
-        documents: documents.map(d => ({ id: d.id, uploaded: d.uploaded })),
-        paymentMethod,
-        paymentCompleted,
-        savedAt: new Date().toISOString(),
-      }));
-    }
-  };
+   const saveProgress = async () => {
+     if (hasBackend() && regId) {
+       try {
+         if (registrationType === 'business_name' && proposedBusinessName) {
+           await saveCacStep1(regId, {
+             businessName: proposedBusinessName,
+             businessNameAlt: proposedBusinessNameAlt,
+             businessObjects: [businessObject1, businessObject2, businessObject3].filter(Boolean),
+           });
+         } else if (registrationType === 'company_incorporation' && proposedCompanyName) {
+           await saveCacStep1(regId, {
+             companyName: proposedCompanyName,
+             companyNameAlt: proposedCompanyNameAlt,
+             companyObjects: companyObjectsText,
+             authorizedShareCapital: Number(authorizedShareCapital.replace(/[^\d]/g, '')),
+           });
+         }
+       } catch (_) { /* ignore save errors */ }
+     } else {
+       localStorage.setItem('remsana_business_registration_progress', JSON.stringify({
+         currentStep,
+         registrationType,
+         documents: documents.map(d => ({ id: d.id, uploaded: d.uploaded })),
+         paymentMethod,
+         paymentCompleted,
+         savedAt: new Date().toISOString(),
+       }));
+     }
+   };
 
   const handleExit = async () => {
     await saveProgress();
@@ -1310,7 +1334,7 @@ export default function BusinessRegistrationPage() {
     <div className="min-h-screen bg-[#f3f0fa] flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm py-4 px-4 md:px-8">
-        <div className="max-w-[600px] mx-auto flex items-center justify-between gap-3">
+        <div className="max-w-[720px] mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <img src={remsanaIcon} alt="REMSANA" className="w-8 h-8 sm:w-10 sm:h-10 object-contain flex-shrink-0" />
             <div className="min-w-0 flex-1">
@@ -1340,7 +1364,7 @@ export default function BusinessRegistrationPage() {
 
       {/* Progress Bar */}
       <div className="bg-white border-b border-[#6B7C7C]/20">
-        <div className="max-w-[600px] mx-auto px-4 py-2">
+        <div className="max-w-[720px] mx-auto px-4 py-2">
           <div className="h-2 bg-[#f3f0fa] rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-[#667eea] to-[#764ba2] transition-all duration-300"
@@ -1352,7 +1376,7 @@ export default function BusinessRegistrationPage() {
 
       {/* Main Content */}
       <main className="flex-1 px-4 py-8">
-        <div className="max-w-[600px] mx-auto">
+        <div className="max-w-[720px] mx-auto">
           <Card className="p-6 md:p-8">
             {renderStepContent()}
 

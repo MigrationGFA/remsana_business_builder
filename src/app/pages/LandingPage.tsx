@@ -160,7 +160,6 @@ const LandingPage = () => {
               <img
                 src="/assets/impact-hero.webp"
                 alt="African woman entrepreneur working on her laptop"
-                // onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&q=80&w=800'; }}
               />
               <div className="image-accent-line"></div>
             </div>

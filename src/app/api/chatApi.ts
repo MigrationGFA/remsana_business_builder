@@ -40,9 +40,9 @@ export interface ConversationWithMessages extends ChatConversation {
 export async function getConversations(): Promise<ChatConversation[]> {
   if (!hasEngagementService()) return [];
   try {
-    console.log('[Chat] ➡️ GET /conversations');
-    const { data } = await engagementApi.get<ChatConversation[]>('/conversations');
-    console.log('[Chat] ⬅️ GET /conversations response:', data);
+    console.log('[Chat] ➡️ GET /chat/conversations');
+    const { data } = await engagementApi.get<ChatConversation[]>('/chat/conversations');
+    console.log('[Chat] ⬅️ GET /chat/conversations response:', data);
     return Array.isArray(data) ? data : [];
   } catch (error) {
     console.error('Failed to fetch conversations:', error);
@@ -50,15 +50,12 @@ export async function getConversations(): Promise<ChatConversation[]> {
   }
 }
 
-/**
- * Create or get existing conversation
- */
 export async function createConversation(ticketId?: string): Promise<ChatConversation> {
-  console.log('[Chat] ➡️ POST /conversations', { ticketId });
-  const { data } = await engagementApi.post<ChatConversation>('/conversations', {
+  console.log('[Chat] ➡️ POST /chat/conversations', { ticketId });
+  const { data } = await engagementApi.post<ChatConversation>('/chat/conversations', {
     ...(ticketId ? { ticket_id: ticketId } : {}),
   });
-  console.log('[Chat] ⬅️ POST /conversations response:', data);
+  console.log('[Chat] ⬅️ POST /chat/conversations response:', data);
   return data;
 }
 

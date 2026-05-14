@@ -4,7 +4,7 @@
 
 Your backend is deployed separately from the frontend. The frontend needs to know where to find the backend API.
 
-**Backend URL:** `https://rbbphpremsana-test.azurewebsites.net`  
+**Backend URL:** `https://rbbphpremsana.azurewebsites.net`  
 **API Path:** `/api/v1`
 
 ---
@@ -25,7 +25,7 @@ Your backend is deployed separately from the frontend. The frontend needs to kno
 
 ### **Production** ✅ (With Fix)
 - Frontend deployed to Azure/Vercel/etc
-- `.env.production` has: `VITE_API_BASE_URL=https://rbbphpremsana-test.azurewebsites.net/api/v1`
+- `.env.production` has: `VITE_API_BASE_URL=https://rbbphpremsana.azurewebsites.net/api/v1`
 - API calls go directly to backend
 - **Result:** API calls work!
 
@@ -42,7 +42,7 @@ VITE_API_BASE_URL=/api/v1
 ### **2. `.env.production` (Production)**
 ```env
 # Full URL - Direct backend connection
-VITE_API_BASE_URL=https://rbbphpremsana-test.azurewebsites.net/api/v1
+VITE_API_BASE_URL=https://rbbphpremsana.azurewebsites.net/api/v1
 ```
 
 ### **3. `vite.config.ts` (Development Proxy)**
@@ -52,7 +52,7 @@ export default defineConfig({
     port: 5174,
     proxy: {
       '/api': {
-        target: 'https://rbbphpremsana-test.azurewebsites.net',
+        target: 'https://rbbphpremsana.azurewebsites.net',
         changeOrigin: true,
       }
     }
@@ -71,7 +71,7 @@ export default defineConfig({
 # In Azure Portal → Static Web App → Configuration
 # Add application setting:
 Name: VITE_API_BASE_URL
-Value: https://rbbphpremsana-test.azurewebsites.net/api/v1
+Value: https://rbbphpremsana.azurewebsites.net/api/v1
 ```
 
 **2. Build Command**
@@ -89,7 +89,7 @@ npm run build
 ```bash
 # In Vercel Dashboard → Project → Settings → Environment Variables
 Name: VITE_API_BASE_URL
-Value: https://rbbphpremsana-test.azurewebsites.net/api/v1
+Value: https://rbbphpremsana.azurewebsites.net/api/v1
 Environment: Production
 ```
 
@@ -106,7 +106,7 @@ vercel --prod
 ```bash
 # In Netlify Dashboard → Site Settings → Environment Variables
 Key: VITE_API_BASE_URL
-Value: https://rbbphpremsana-test.azurewebsites.net/api/v1
+Value: https://rbbphpremsana.azurewebsites.net/api/v1
 ```
 
 **2. Build Settings**
@@ -176,7 +176,7 @@ Error: Request failed with status code 404
 ```bash
 # Check in browser console:
 console.log(import.meta.env.VITE_API_BASE_URL);
-# Should show: "https://rbbphpremsana-test.azurewebsites.net/api/v1"
+# Should show: "https://rbbphpremsana.azurewebsites.net/api/v1"
 # NOT: "/api/v1"
 ```
 
@@ -216,7 +216,7 @@ After deployment, open browser console and check:
 console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
 
 // Expected in production:
-// "https://rbbphpremsana-test.azurewebsites.net/api/v1"
+// "https://rbbphpremsana.azurewebsites.net/api/v1"
 
 // Expected in development:  
 // "/api/v1"
@@ -240,8 +240,8 @@ npm run build -- --mode staging
 ### **Multiple Backends**
 ```env
 # .env.production
-VITE_API_BASE_URL=https://rbbphpremsana-test.azurewebsites.net/api/v1
-VITE_ADMIN_API_URL=https://rbbphpremsana-test.azurewebsites.net/api/admin
+VITE_API_BASE_URL=https://rbbphpremsana.azurewebsites.net/api/v1
+VITE_ADMIN_API_URL=https://rbbphpremsana.azurewebsites.net/api/admin
 ```
 
 ---

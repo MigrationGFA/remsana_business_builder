@@ -103,7 +103,7 @@ I've prepared complete documentation with step-by-step implementation guide:
 3. CORS_VERIFICATION_CHECKLIST.md (testing guide after fix)
 
 FRONTEND: https://businessbuilder-test.azurewebsites.net
-BACKEND: https://rbbphpremsana-test.azurewebsites.net
+BACKEND: https://rbbphpremsana.azurewebsites.net
 
 Estimated fix time: ~30 minutes
 Impact: HIGH - Production users cannot login/signup

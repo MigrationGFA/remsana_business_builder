@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const TOKEN = process.env.TOKEN || 'PASTE_YOUR_TOKEN_HERE';
-const BASE = 'https://rbbphpremsana-test.azurewebsites.net/api/v1';
+const BASE = 'https://rbbphpremsana.azurewebsites.net/api/v1';
 
 const results = { pass: [], fail: [] };
 
